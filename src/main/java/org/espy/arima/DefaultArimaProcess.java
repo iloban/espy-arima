@@ -5,7 +5,8 @@ import java.util.Arrays;
 public class DefaultArimaProcess implements ArimaProcess {
     private double[] arCoefficients;
     private double[] maCoefficients;
-    private int integratedOrder;
+    private int integrationOrder;
+    private double expectation;
     private double variance = 1;
     private double constant;
 
@@ -15,8 +16,8 @@ public class DefaultArimaProcess implements ArimaProcess {
     }
 
     @Override
-    public int getIntegratedOrder() {
-        return integratedOrder;
+    public int getIntegrationOrder() {
+        return integrationOrder;
     }
 
     @Override
@@ -24,8 +25,8 @@ public class DefaultArimaProcess implements ArimaProcess {
         return maCoefficients.length;
     }
 
-    public void setIntegratedOrder(int integratedOrder) {
-        this.integratedOrder = integratedOrder;
+    public void setIntegrationOrder(int integrationOrder) {
+        this.integrationOrder = integrationOrder;
     }
 
     @Override
@@ -33,7 +34,7 @@ public class DefaultArimaProcess implements ArimaProcess {
         return arCoefficients;
     }
 
-    public void setArCoefficients(double[] arCoefficients) {
+    public void setArCoefficients(double... arCoefficients) {
         this.arCoefficients = arCoefficients;
     }
 
@@ -42,8 +43,17 @@ public class DefaultArimaProcess implements ArimaProcess {
         return maCoefficients;
     }
 
-    public void setMaCoefficients(double[] maCoefficients) {
+    public void setMaCoefficients(double... maCoefficients) {
         this.maCoefficients = maCoefficients;
+    }
+
+    @Override
+    public double getExpectation() {
+        return expectation;
+    }
+
+    public void setExpectation(double expectation) {
+        this.expectation = expectation;
     }
 
     @Override
@@ -69,7 +79,8 @@ public class DefaultArimaProcess implements ArimaProcess {
         return "ArimaProcess{" +
                 "arCoefficients=" + Arrays.toString(arCoefficients) +
                 ", maCoefficients=" + Arrays.toString(maCoefficients) +
-                ", integratedOrder=" + integratedOrder +
+                ", integrationOrder=" + integrationOrder +
+                ", expectation=" + expectation +
                 ", variance=" + variance +
                 ", constant=" + constant +
                 '}';

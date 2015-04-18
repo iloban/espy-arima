@@ -6,6 +6,7 @@ class ArmaFormula {
     private Random random = new Random();
     private double[] arCoefficients;
     private double[] maCoefficients;
+    private double expectation;
     private double standardDeviation;
     private double constant;
 
@@ -18,7 +19,7 @@ class ArmaFormula {
     }
 
     private double getObservationError() {
-        return random.nextGaussian() * standardDeviation;
+        return expectation + random.nextGaussian() * standardDeviation;
     }
 
     private double getVectorConvolution(double[] vector1, double[] vector2) {
@@ -35,6 +36,10 @@ class ArmaFormula {
 
     public void setMaCoefficients(double[] maCoefficients) {
         this.maCoefficients = maCoefficients;
+    }
+
+    public void setExpectation(double expectation) {
+        this.expectation = expectation;
     }
 
     public void setStandardDeviation(double standardDeviation) {

@@ -14,11 +14,7 @@ class ObservationErrorWindow {
 
     public void addNextObservationError(double nextObservationError) {
         lastObservationError = nextObservationError;
-        if (observationErrors.length == 0) {
-            return;
-        }
-        ArrayUtils.shiftToLeft(observationErrors);
-        observationErrors[observationErrors.length - 1] = nextObservationError;
+        ArrayUtils.appendWithShift(observationErrors, nextObservationError);
     }
 
     public double getLastObservationError() {

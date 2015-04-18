@@ -9,16 +9,25 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 public class DefaultArimaProcessRealizationTest {
-    private static void test(double[] arCoefficients, int integratedOrder, double[] maCoefficients, double variance,
+    @Test
+    public void test() {
+        // test(new double[]{ -0.7, 0.3 }, 0, new double[0], 1E-1, 50);
+        // test(new double[0], 0, new double[]{ -0.7, 0.3 }, 1E-1, 50);
+        // test(new double[]{ -0.7, 0.3 }, 0, new double[]{ -0.7, 0.3 }, 1E-1, 50);
+        test(new double[]{ -0.7, 0.3 }, 3, new double[]{ -0.7, 0.3 }, 1E-1, 50);
+    }
+
+    private static void test(double[] arCoefficients, int integrationOrder, double[] maCoefficients, double variance,
             int size) {
         DefaultArimaProcess arimaProcess = new DefaultArimaProcess();
         arimaProcess.setArCoefficients(arCoefficients);
         arimaProcess.setMaCoefficients(maCoefficients);
-        arimaProcess.setIntegratedOrder(integratedOrder);
+        arimaProcess.setIntegrationOrder(integrationOrder);
         arimaProcess.setVariance(variance);
         ArimaProcessRealization arimaProcessRealization = new DefaultArimaProcessRealization(arimaProcess);
 
-        assertEquals(integratedOrder, arimaProcessRealization.getIntegratedOrder());
+        assertEquals(integrationOrder, arimaProcessRealization.getIntegrationOrder());
+        assertEquals(0, arimaProcessRealization.getExpectation(), EPS);
         assertEquals(variance, arimaProcessRealization.getVariance(), EPS);
         assertEquals(0, arimaProcessRealization.getConstant(), EPS);
         assertArrayEquals(arCoefficients, arimaProcessRealization.getArCoefficients(), EPS);
@@ -28,13 +37,5 @@ public class DefaultArimaProcessRealizationTest {
         System.out.println("Process: " + arimaProcessRealization);
         System.out.println("Observations: " + Arrays.toString(arimaProcessRealization.next(size)));
         System.out.println("--------------------");
-    }
-
-    @Test
-    public void test() {
-        // test(new double[]{ -0.7, 0.3 }, 0, new double[0], 1E-1, 50);
-        // test(new double[0], 0, new double[]{ -0.7, 0.3 }, 1E-1, 50);
-        // test(new double[]{ -0.7, 0.3 }, 0, new double[]{ -0.7, 0.3 }, 1E-1, 50);
-        // test(new double[]{ -0.7, 0.3 }, 3, new double[]{ -0.7, 0.3 }, 1E-1, 50);
     }
 }

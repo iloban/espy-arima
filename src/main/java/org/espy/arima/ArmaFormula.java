@@ -19,6 +19,7 @@ class ArmaFormula {
     }
 
     private double getObservationError() {
+        // TODO (feature): add facility to configure error computation.
         return expectation + random.nextGaussian() * standardDeviation;
     }
 

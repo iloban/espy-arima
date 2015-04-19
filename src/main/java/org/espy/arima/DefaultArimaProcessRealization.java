@@ -30,35 +30,22 @@ public class DefaultArimaProcessRealization implements ArimaProcessRealization {
     }
 
     @Override
-    public double next() {
-        double[] arArguments = differentiatedObservationWindow.getDifferentiatedObservations();
-        double[] maArguments = observationErrorWindow.getObservationErrors();
-
-        ArmaFormula.Result result = armaFormula.evaluate(arArguments, maArguments);
-
-        differentiatedObservationWindow.addNextDifferentiatedObservation(result.observation);
-        observationErrorWindow.addNextObservationError(result.observationError);
-
-        return differentiatedObservationWindow.getLastObservation();
-    }
-
-    @Override
     public double getExpectation() {
         return arimaProcess.getExpectation();
     }
 
     @Override
-    public double getVariance() {
-        return arimaProcess.getVariance();
+    public double next() {
+        double[] arArguments = differentiatedObservationWindow.getDifferentiatedObservations();
+        double[] maArguments = observationErrorWindow.getObservationErrors();
+        ArmaFormula.Result result = armaFormula.evaluate(arArguments, maArguments);
+        observationErrorWindow.pushObservationError(result.observationError);
+        return differentiatedObservationWindow.pushDifferentiatedObservation(result.observation);
     }
 
     @Override
-    public double[] next(int size) {
-        double[] result = new double[size];
-        for (int i = 0; i < size; i++) {
-            result[i] = next();
-        }
-        return result;
+    public double getVariance() {
+        return arimaProcess.getVariance();
     }
 
     @Override
@@ -69,6 +56,15 @@ public class DefaultArimaProcessRealization implements ArimaProcessRealization {
     @Override
     public int getArOrder() {
         return arimaProcess.getArOrder();
+    }
+
+    @Override
+    public double[] next(int size) {
+        double[] result = new double[size];
+        for (int i = 0; i < size; i++) {
+            result[i] = next();
+        }
+        return result;
     }
 
     @Override

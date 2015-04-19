@@ -1,8 +1,14 @@
 package org.espy.arima;
 
+import java.util.Arrays;
+
 class ObservationErrorWindow {
     private double[] observationErrors;
-    private double lastObservationError;
+
+    public ObservationErrorWindow(int maOrder, double defaultError) {
+        this(maOrder);
+        Arrays.fill(observationErrors, defaultError);
+    }
 
     public ObservationErrorWindow(int maOrder) {
         this.observationErrors = new double[maOrder];
@@ -12,12 +18,7 @@ class ObservationErrorWindow {
         return observationErrors;
     }
 
-    public void addNextObservationError(double nextObservationError) {
-        lastObservationError = nextObservationError;
+    public void pushObservationError(double nextObservationError) {
         ArrayUtils.appendWithShift(observationErrors, nextObservationError);
-    }
-
-    public double getLastObservationError() {
-        return lastObservationError;
     }
 }

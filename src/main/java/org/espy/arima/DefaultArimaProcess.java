@@ -2,9 +2,11 @@ package org.espy.arima;
 
 import java.util.Arrays;
 
+import static org.espy.arima.ArrayUtils.EMPTY_DOUBLE_ARRAY;
+
 public class DefaultArimaProcess implements ArimaProcess {
-    private double[] arCoefficients;
-    private double[] maCoefficients;
+    private double[] arCoefficients = EMPTY_DOUBLE_ARRAY;
+    private double[] maCoefficients = EMPTY_DOUBLE_ARRAY;
     private int integrationOrder;
     private double expectation;
     private double variance = 1;

@@ -40,7 +40,15 @@ final class DoubleUtils {
         return result;
     }
 
-    public static double[] copyFromEnd(double[] array, int size) {
+    public static double[] copyBegin(double[] array, int size) {
+        return Arrays.copyOfRange(array, 0, size);
+    }
+
+    public static double[] copyRange(double[] array, int from, int size) {
+        return Arrays.copyOfRange(array, from, from + size);
+    }
+
+    public static double[] copyEnd(double[] array, int size) {
         return Arrays.copyOfRange(array, array.length - size, array.length);
     }
 
@@ -50,5 +58,13 @@ final class DoubleUtils {
             return solver.solve(MatrixUtils.createRealVector(b)).toArray();
         }
         return b;
+    }
+
+    public static double getMean(double[] array) {
+        double sum = 0;
+        for (double value : array) {
+            sum += value;
+        }
+        return sum / array.length;
     }
 }

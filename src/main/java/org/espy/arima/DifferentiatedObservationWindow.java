@@ -33,6 +33,6 @@ class DifferentiatedObservationWindow {
     }
 
     public void setWindowSize(int windowSize) {
-        differentiatedObservations = DoubleUtils.copyFromEnd(differentiatedObservations, windowSize);
+        differentiatedObservations = DoubleUtils.copyEnd(differentiatedObservations, windowSize);
     }
 }

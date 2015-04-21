@@ -50,7 +50,6 @@ class StationarityTest {
         if (!stationary && previousResult != null) {
             stationary = Math.abs(stationarityEstimation - previousResult.stationarityEstimation) < 0.01;
         }
-        System.out.println("stationarityEstimation: " + stationarityEstimation);
         return new Result(stationary, mean, stationarityEstimation);
     }
 

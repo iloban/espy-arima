@@ -7,7 +7,7 @@ public interface ArimaProcess extends ArimaModel {
 
     double getExpectation();
 
-    double getVariance();
+    double getVariation();
 
     double getConstant();
 }

@@ -15,7 +15,7 @@ public class DefaultArimaProcessRealization implements ArimaProcessRealization {
         armaFormula.setArCoefficients(arimaProcess.getArCoefficients());
         armaFormula.setMaCoefficients(arimaProcess.getMaCoefficients());
         armaFormula.setExpectation(arimaProcess.getExpectation());
-        armaFormula.setStandardDeviation(Math.sqrt(arimaProcess.getVariance()));
+        armaFormula.setStandardDeviation(Math.sqrt(arimaProcess.getVariation()));
         armaFormula.setConstant(arimaProcess.getConstant());
     }
 
@@ -35,17 +35,17 @@ public class DefaultArimaProcessRealization implements ArimaProcessRealization {
     }
 
     @Override
+    public double getVariation() {
+        return arimaProcess.getVariation();
+    }
+
+    @Override
     public double next() {
         double[] arArguments = differentiatedObservationWindow.getDifferentiatedObservations();
         double[] maArguments = observationErrorWindow.getObservationErrors();
         ArmaFormula.Result result = armaFormula.evaluate(arArguments, maArguments);
         observationErrorWindow.pushObservationError(result.observationError);
         return differentiatedObservationWindow.pushDifferentiatedObservation(result.observation);
-    }
-
-    @Override
-    public double getVariance() {
-        return arimaProcess.getVariance();
     }
 
     @Override
@@ -59,15 +59,6 @@ public class DefaultArimaProcessRealization implements ArimaProcessRealization {
     }
 
     @Override
-    public double[] next(int size) {
-        double[] result = new double[size];
-        for (int i = 0; i < size; i++) {
-            result[i] = next();
-        }
-        return result;
-    }
-
-    @Override
     public int getIntegrationOrder() {
         return arimaProcess.getIntegrationOrder();
     }
@@ -75,6 +66,15 @@ public class DefaultArimaProcessRealization implements ArimaProcessRealization {
     @Override
     public int getMaOrder() {
         return arimaProcess.getMaOrder();
+    }
+
+    @Override
+    public double[] next(int size) {
+        double[] result = new double[size];
+        for (int i = 0; i < size; i++) {
+            result[i] = next();
+        }
+        return result;
     }
 
     @Override

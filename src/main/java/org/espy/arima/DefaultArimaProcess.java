@@ -2,14 +2,14 @@ package org.espy.arima;
 
 import java.util.Arrays;
 
-import static org.espy.arima.ArrayUtils.EMPTY_DOUBLE_ARRAY;
+import static org.espy.arima.DoubleUtils.EMPTY_DOUBLE_ARRAY;
 
 public class DefaultArimaProcess implements ArimaProcess {
     private double[] arCoefficients = EMPTY_DOUBLE_ARRAY;
     private double[] maCoefficients = EMPTY_DOUBLE_ARRAY;
     private int integrationOrder;
     private double expectation;
-    private double variance = 1;
+    private double variation = 1;
     private double constant;
 
     @Override
@@ -59,12 +59,12 @@ public class DefaultArimaProcess implements ArimaProcess {
     }
 
     @Override
-    public double getVariance() {
-        return variance;
+    public double getVariation() {
+        return variation;
     }
 
-    public void setVariance(double variance) {
-        this.variance = variance;
+    public void setVariation(double variation) {
+        this.variation = variation;
     }
 
     @Override
@@ -83,7 +83,7 @@ public class DefaultArimaProcess implements ArimaProcess {
                 ", maCoefficients=" + Arrays.toString(maCoefficients) +
                 ", integrationOrder=" + integrationOrder +
                 ", expectation=" + expectation +
-                ", variance=" + variance +
+                ", variation=" + variation +
                 ", constant=" + constant +
                 '}';
     }

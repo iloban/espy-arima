@@ -19,6 +19,6 @@ class ObservationErrorWindow {
     }
 
     public void pushObservationError(double nextObservationError) {
-        ArrayUtils.appendWithShift(observationErrors, nextObservationError);
+        DoubleUtils.appendWithShift(observationErrors, nextObservationError);
     }
 }

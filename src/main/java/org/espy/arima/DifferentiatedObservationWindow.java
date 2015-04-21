@@ -11,11 +11,11 @@ class DifferentiatedObservationWindow {
 
     public DifferentiatedObservationWindow(int integrationOrder, double[] observations) {
         lastObservationColumn = new double[integrationOrder + 1];
-        lastObservationColumn[integrationOrder] = ArrayUtils.getLast(observations);
+        lastObservationColumn[integrationOrder] = DoubleUtils.getLast(observations);
         differentiatedObservations = observations;
         for (int i = integrationOrder - 1; i >= 0; i--) {
-            differentiatedObservations = ArrayUtils.differentiate(observations);
-            lastObservationColumn[i] = ArrayUtils.getLast(differentiatedObservations);
+            differentiatedObservations = DoubleUtils.differentiate(observations);
+            lastObservationColumn[i] = DoubleUtils.getLast(differentiatedObservations);
         }
     }
 
@@ -24,15 +24,15 @@ class DifferentiatedObservationWindow {
     }
 
     public double pushDifferentiatedObservation(double nextDifferentiatedObservation) {
-        ArrayUtils.appendWithShift(differentiatedObservations, nextDifferentiatedObservation);
+        DoubleUtils.appendWithShift(differentiatedObservations, nextDifferentiatedObservation);
         lastObservationColumn[0] = nextDifferentiatedObservation;
         for (int i = 1; i < lastObservationColumn.length; i++) {
             lastObservationColumn[i] += lastObservationColumn[i - 1];
         }
-        return ArrayUtils.getLast(lastObservationColumn);
+        return DoubleUtils.getLast(lastObservationColumn);
     }
 
     public void setWindowSize(int windowSize) {
-        differentiatedObservations = ArrayUtils.copyFromEnd(differentiatedObservations, windowSize);
+        differentiatedObservations = DoubleUtils.copyFromEnd(differentiatedObservations, windowSize);
     }
 }

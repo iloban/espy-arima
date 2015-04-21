@@ -1,11 +1,20 @@
 package org.espy.arima;
 
+import org.apache.commons.math3.linear.DecompositionSolver;
+import org.apache.commons.math3.linear.MatrixUtils;
+import org.apache.commons.math3.linear.QRDecomposition;
+
 import java.util.Arrays;
 
-final class ArrayUtils {
+final class DoubleUtils {
     public static final double[] EMPTY_DOUBLE_ARRAY = new double[0];
+    public static final double EQUALITY_EPSILON = 1E-10;
 
-    private ArrayUtils() {
+    private DoubleUtils() {
+    }
+
+    public static boolean isApproximateEqual(double a, double b) {
+        return Math.abs(a - b) < EQUALITY_EPSILON;
     }
 
     public static double getLast(double[] array) {
@@ -33,5 +42,13 @@ final class ArrayUtils {
 
     public static double[] copyFromEnd(double[] array, int size) {
         return Arrays.copyOfRange(array, array.length - size, array.length);
+    }
+
+    public static double[] solveSLE(double[][] A, double[] b) {
+        DecompositionSolver solver = new QRDecomposition(MatrixUtils.createRealMatrix(A)).getSolver();
+        if (solver.isNonSingular()) {
+            return solver.solve(MatrixUtils.createRealVector(b)).toArray();
+        }
+        return b;
     }
 }

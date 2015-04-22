@@ -5,9 +5,7 @@ public final class ArimaFitter {
     }
 
     public static ArimaProcess fit(double[] observations, int arOrder, int integrationOrder, int maOrder) {
-        ArimaFitterStrategy arimaFitterStrategy =
-                new MethodOfMomentsArimaFitterStrategy(observations, arOrder, maOrder, integrationOrder);
-        return fit(arimaFitterStrategy);
+        return fit(new MethodOfMomentsArimaFitterStrategy(observations, arOrder, maOrder, integrationOrder));
     }
 
     private static ArimaProcess fit(ArimaFitterStrategy arimaFitterStrategy) {
@@ -15,8 +13,10 @@ public final class ArimaFitter {
     }
 
     public static ArimaProcess fit(double[] observations, int arOrder, int maOrder) {
-        ArimaFitterStrategy arimaFitterStrategy =
-                new MethodOfMomentsArimaFitterStrategy(observations, arOrder, maOrder);
-        return fit(arimaFitterStrategy);
+        return fit(new MethodOfMomentsArimaFitterStrategy(observations, arOrder, maOrder));
+    }
+
+    public static ArimaProcess fit(double[] observations) {
+        return fit(new GeneticAlgorithmArimaFitterStrategy(observations));
     }
 }

@@ -67,4 +67,16 @@ final class DoubleUtils {
         }
         return sum / array.length;
     }
+
+    public static double[] getMean(double[] array1, double[] array2) {
+        double[] result = new double[array1.length];
+        for (int i = 0; i < array1.length; i++) {
+            result[i] = getMean(array1[i], array2[i]);
+        }
+        return result;
+    }
+
+    public static double getMean(double value1, double value2) {
+        return (value1 + value2) / 2;
+    }
 }

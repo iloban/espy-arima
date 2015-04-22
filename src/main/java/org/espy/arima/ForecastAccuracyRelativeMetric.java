@@ -47,6 +47,10 @@ class ForecastAccuracyRelativeMetric {
 
     public static double combine(double[] metrics) {
         Arrays.sort(metrics);
+        return combineSorted(metrics);
+    }
+
+    public static double combineSorted(double[] metrics) {
         double mean = DoubleUtils.getMean(metrics);
         double median = metrics[metrics.length / 2];
         double max = metrics[metrics.length - 1];

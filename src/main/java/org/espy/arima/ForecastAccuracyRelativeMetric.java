@@ -36,6 +36,9 @@ class ForecastAccuracyRelativeMetric {
 
         Arrays.sort(deltas);
         double denominator = (max - min) + deltas[forecastLength - 1];
+        if (denominator == 0) {
+            return 0;
+        }
         for (int i = 0; i < forecastLength; i++) {
             deltas[i] /= denominator;
         }

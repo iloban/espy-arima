@@ -6,12 +6,12 @@ import java.util.List;
 import java.util.Random;
 
 public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy {
-    private static final int CONTROL_OBSERVATION_COUNT = 8;
-    private static final int MIN_LEARNING_OBSERVATION_COUNT = 2;
+    private static final int CONTROL_OBSERVATION_COUNT = 5;
+    private static final int MIN_LEARNING_OBSERVATION_COUNT = 5;
     private static final int MAX_INTEGRATION_ORDER = 2;
     private static final int MAX_AR_ORDER = 2;
     private static final int MAX_MA_ORDER = 2;
-    private static final int ITERATION_LIMIT = 300;
+    private static final int ITERATION_LIMIT = 100;
     private static final int NON_SIGNIFICANT_IMPROVEMENT_LIMIT = 3;
     private static final double SIGNIFICANT_IMPROVEMENT_THRESHOLD = 1E-3;
 
@@ -327,7 +327,7 @@ public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy 
             newArimaProcess.setIntegrationOrder(oldArimaProcess.getIntegrationOrder());
             newArimaProcess.setArCoefficients(mutateWeakly(oldArimaProcess.getArCoefficients()));
             newArimaProcess.setMaCoefficients(mutateWeakly(oldArimaProcess.getMaCoefficients()));
-            newArimaProcess.setVariation(mutateWeakly(oldArimaProcess.getVariation()));
+            newArimaProcess.setVariation(oldArimaProcess.getVariation());
             newArimaProcess.setConstant(mutateWeakly(oldArimaProcess.getConstant()));
             return new Individual(newArimaProcess);
         }
@@ -354,7 +354,7 @@ public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy 
             newArimaProcess.setIntegrationOrder(oldArimaProcess.getIntegrationOrder());
             newArimaProcess.setArCoefficients(mutateStrongly(oldArimaProcess.getArCoefficients()));
             newArimaProcess.setMaCoefficients(mutateStrongly(oldArimaProcess.getMaCoefficients()));
-            newArimaProcess.setVariation(mutateStrongly(oldArimaProcess.getVariation()));
+            newArimaProcess.setVariation(oldArimaProcess.getVariation());
             newArimaProcess.setConstant(mutateStrongly(oldArimaProcess.getConstant()));
             return new Individual(newArimaProcess);
         }

@@ -40,15 +40,6 @@ public class DefaultArimaProcessRealization implements ArimaProcessRealization {
     }
 
     @Override
-    public double next() {
-        double[] arArguments = differentiatedObservationWindow.getDifferentiatedObservations();
-        double[] maArguments = observationErrorWindow.getObservationErrors();
-        ArmaFormula.Result result = armaFormula.evaluate(arArguments, maArguments);
-        observationErrorWindow.pushObservationError(result.observationError);
-        return differentiatedObservationWindow.pushDifferentiatedObservation(result.observation);
-    }
-
-    @Override
     public double getConstant() {
         return arimaProcess.getConstant();
     }
@@ -75,6 +66,15 @@ public class DefaultArimaProcessRealization implements ArimaProcessRealization {
             result[i] = next();
         }
         return result;
+    }
+
+    @Override
+    public double next() {
+        double[] arArguments = differentiatedObservationWindow.getDifferentiatedObservations();
+        double[] maArguments = observationErrorWindow.getObservationErrors();
+        ArmaFormula.Result result = armaFormula.evaluate(arArguments, maArguments);
+        observationErrorWindow.pushObservationError(result.observationError);
+        return differentiatedObservationWindow.pushDifferentiatedObservation(result.observation);
     }
 
     @Override

@@ -34,20 +34,20 @@ public class DefaultArimaForecaster implements ArimaForecaster {
     }
 
     @Override
-    public double next() {
-        double[] arArguments = differentiatedObservationWindow.getDifferentiatedObservations();
-        double[] maArguments = observationErrorWindow.getObservationErrors();
-        ArmaFormula.Result result = armaFormula.evaluate(arArguments, maArguments);
-        observationErrorWindow.pushObservationError(result.observationError);
-        return differentiatedObservationWindow.pushDifferentiatedObservation(result.observation);
-    }
-
-    @Override
     public double[] next(int size) {
         double[] result = new double[size];
         for (int i = 0; i < size; i++) {
             result[i] = next();
         }
         return result;
+    }
+
+    @Override
+    public double next() {
+        double[] arArguments = differentiatedObservationWindow.getDifferentiatedObservations();
+        double[] maArguments = observationErrorWindow.getObservationErrors();
+        ArmaFormula.Result result = armaFormula.evaluate(arArguments, maArguments);
+        observationErrorWindow.pushObservationError(result.observationError);
+        return differentiatedObservationWindow.pushDifferentiatedObservation(result.observation);
     }
 }

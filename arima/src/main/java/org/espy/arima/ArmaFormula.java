@@ -3,12 +3,22 @@ package org.espy.arima;
 import java.util.Random;
 
 class ArmaFormula {
-    private Random random = new Random();
+
+    private final Random random;
+
     private double[] arCoefficients;
+
     private double[] maCoefficients;
+
     private double expectation;
+
     private double standardDeviation;
+
     private double constant;
+
+    public ArmaFormula(Random random) {
+        this.random = random;
+    }
 
     public Result evaluate(double[] arArguments, double[] maArguments) {
         Result result = new Result();

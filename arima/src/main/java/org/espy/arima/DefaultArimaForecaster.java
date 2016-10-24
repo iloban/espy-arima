@@ -1,6 +1,7 @@
 package org.espy.arima;
 
 import java.util.Arrays;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class DefaultArimaForecaster implements ArimaForecaster {
     private DifferentiatedObservationWindow differentiatedObservationWindow;
@@ -13,7 +14,7 @@ public class DefaultArimaForecaster implements ArimaForecaster {
 
         observationErrorWindow = new ObservationErrorWindow(arimaProcess.getMaOrder(), arimaProcess.getExpectation());
 
-        armaFormula = new ArmaFormula();
+        armaFormula = new ArmaFormula(ThreadLocalRandom.current());
         armaFormula.setArCoefficients(arimaProcess.getArCoefficients());
         armaFormula.setMaCoefficients(arimaProcess.getMaCoefficients());
         armaFormula.setExpectation(arimaProcess.getExpectation());

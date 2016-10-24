@@ -1,17 +1,25 @@
 package org.espy.arima;
 
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
+
 public class DefaultArimaProcessRealization implements ArimaProcessRealization {
+
     private ArimaProcess arimaProcess;
     private DifferentiatedObservationWindow differentiatedObservationWindow;
     private ObservationErrorWindow observationErrorWindow;
     private ArmaFormula armaFormula;
 
     public DefaultArimaProcessRealization(ArimaProcess arimaProcess) {
+        this(arimaProcess, ThreadLocalRandom.current());
+    }
+
+    public DefaultArimaProcessRealization(ArimaProcess arimaProcess, Random random) {
         this.arimaProcess = arimaProcess;
         this.differentiatedObservationWindow =
                 new DifferentiatedObservationWindow(arimaProcess.getIntegrationOrder(), arimaProcess.getArOrder());
         this.observationErrorWindow = new ObservationErrorWindow(arimaProcess.getMaOrder());
-        armaFormula = new ArmaFormula();
+        armaFormula = new ArmaFormula(random);
         armaFormula.setArCoefficients(arimaProcess.getArCoefficients());
         armaFormula.setMaCoefficients(arimaProcess.getMaCoefficients());
         armaFormula.setExpectation(arimaProcess.getExpectation());

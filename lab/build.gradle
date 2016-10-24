@@ -1,0 +1,4 @@
+dependencies {
+    compile project(':arima')
+    compile 'com.google.guava:guava:19.0'
+}

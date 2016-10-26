@@ -6,7 +6,7 @@ import java.util.Random;
 
 public class TimeSeriesSuiteFactory {
 
-    public static TimeSeriesSuite generate(TimeSeriesSuiteConfiguration configuration) {
+    public static TimeSeriesSuite createTimeSeriesSuite(TimeSeriesSuiteConfiguration configuration) {
         List<TimeSeriesGenerator> generators = configuration.getGenerators();
         ChoiceStrategy choiceStrategy = createChoiceStrategy(configuration);
         Random random = new Random(configuration.getSeed());
@@ -23,7 +23,7 @@ public class TimeSeriesSuiteFactory {
             TimeSeriesGenerator generator = choiceStrategy.select(choiceContext);
             samples.add(generator.generate(generatorContext));
         }
-        return TimeSeriesSuite.of(samples);
+        return new TimeSeriesSuite(samples);
     }
 
     private static ChoiceStrategy createChoiceStrategy(TimeSeriesSuiteConfiguration configuration) {

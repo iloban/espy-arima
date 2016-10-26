@@ -1,0 +1,161 @@
+ARIMA | p=0 d=2 q=2 | ma1=0.1 ma2=0.407
+FARM: 0.017754
+
+ARIMA | p=2 d=0 q=2 | ar1=0.999 ar2=0.062 | ma1=0.586 ma2=0.567
+FARM: 0.019087
+
+ARIMA | p=1 d=2 q=0 | ar1=0.531
+FARM: 0.009196
+
+ARIMA | p=2 d=2 q=2 | ar1=0.996 ar2=0.737 | ma1=0.819 ma2=0.582
+FARM: 0.040029
+
+ARIMA | p=2 d=0 q=0 | ar1=0.727 ar2=0.132
+FARM: 0.166344
+
+ARIMA | p=1 d=2 q=1 | ar1=0.67 | ma1=0.21
+FARM: 0.007514
+
+ARIMA | p=0 d=0 q=2 | ma1=0.558 ma2=0.44
+FARM: 0.181122
+
+ARIMA | p=1 d=1 q=1 | ar1=0.13 | ma1=0.402
+FARM: 0.085153
+
+ARIMA | p=2 d=2 q=2 | ar1=0.716 ar2=0.669 | ma1=0.76 ma2=0.349
+FARM: 0.018118
+
+ARIMA | p=0 d=1 q=1 | ma1=0.92
+FARM: 0.134714
+
+ARIMA | p=1 d=1 q=1 | ar1=0.089 | ma1=0.573
+FARM: 0.080639
+
+ARIMA | p=1 d=1 q=1 | ar1=0.372 | ma1=0.873
+FARM: 0.072870
+
+ARIMA | p=2 d=2 q=2 | ar1=0.405 ar2=0.995 | ma1=0.359 ma2=0.46
+FARM: 0.015151
+
+ARIMA | p=1 d=2 q=1 | ar1=0.928 | ma1=0.697
+FARM: 0.001852
+
+ARIMA | p=2 d=0 q=0 | ar1=0.512 ar2=0.296
+FARM: 0.128789
+
+ARIMA | p=2 d=1 q=2 | ar1=0.547 ar2=0.191 | ma1=0.07 ma2=0.229
+FARM: 0.048034
+
+ARIMA | p=1 d=1 q=0 | ar1=0.225
+FARM: 0.107698
+
+ARIMA | p=2 d=0 q=0 | ar1=0.837 ar2=0.166
+FARM: 0.117480
+
+ARIMA | p=0 d=1 q=1 | ma1=0.078
+FARM: 0.082593
+
+ARIMA | p=0 d=0 q=2 | ma1=0.552 ma2=0.745
+FARM: 0.177151
+
+ARIMA | p=1 d=2 q=1 | ar1=0.342 | ma1=0.567
+FARM: 0.007221
+
+ARIMA | p=2 d=1 q=0 | ar1=0.029 ar2=0.45
+FARM: 0.099056
+
+ARIMA | p=1 d=1 q=1 | ar1=0.605 | ma1=0.092
+FARM: 0.055652
+
+ARIMA | p=1 d=2 q=1 | ar1=0.806 | ma1=0.325
+FARM: 0.003071
+
+ARIMA | p=1 d=0 q=0 | ar1=0.012
+FARM: 0.162276
+
+ARIMA | p=1 d=0 q=0 | ar1=0.831
+FARM: 0.129225
+
+ARIMA | p=1 d=0 q=0 | ar1=0.91
+FARM: 0.098155
+
+ARIMA | p=2 d=1 q=2 | ar1=0.887 ar2=0.198 | ma1=0.511 ma2=0.606
+FARM: 0.020541
+
+ARIMA | p=1 d=2 q=1 | ar1=0.218 | ma1=0.68
+FARM: 0.007683
+
+ARIMA | p=0 d=0 q=2 | ma1=0.387 ma2=0.741
+FARM: 0.171903
+
+ARIMA | p=0 d=1 q=1 | ma1=0.976
+FARM: 0.083623
+
+ARIMA | p=0 d=2 q=2 | ma1=0.198 ma2=0.663
+FARM: 0.008769
+
+ARIMA | p=1 d=1 q=1 | ar1=0.667 | ma1=0.075
+FARM: 0.058011
+
+ARIMA | p=1 d=2 q=1 | ar1=0.03 | ma1=0.128
+FARM: 0.013826
+
+ARIMA | p=2 d=0 q=2 | ar1=0.54 ar2=0.289 | ma1=0.233 ma2=0.18
+FARM: 0.101410
+
+ARIMA | p=1 d=0 q=0 | ar1=0.885
+FARM: 0.122555
+
+ARIMA | p=0 d=1 q=2 | ma1=0.664 ma2=0.814
+FARM: 0.111601
+
+ARIMA | p=1 d=0 q=0 | ar1=0.217
+FARM: 0.162199
+
+ARIMA | p=1 d=1 q=1 | ar1=0.594 | ma1=0.514
+FARM: 0.066002
+
+ARIMA | p=2 d=0 q=2 | ar1=0.028 ar2=0.243 | ma1=0.847 ma2=0.697
+FARM: 0.165516
+
+ARIMA | p=1 d=2 q=1 | ar1=0.28 | ma1=0.363
+FARM: 0.008018
+
+ARIMA | p=2 d=1 q=0 | ar1=0.649 ar2=0.082
+FARM: 0.061762
+
+ARIMA | p=2 d=1 q=2 | ar1=0.643 ar2=0.088 | ma1=0.716 ma2=0.725
+FARM: 0.028170
+
+ARIMA | p=0 d=0 q=1 | ma1=0.16
+FARM: 0.173374
+
+ARIMA | p=0 d=0 q=2 | ma1=0.407 ma2=0.606
+FARM: 0.145882
+
+ARIMA | p=2 d=0 q=2 | ar1=0.352 ar2=0.668 | ma1=0.658 ma2=0.841
+FARM: 0.104670
+
+ARIMA | p=1 d=2 q=0 | ar1=0.635
+FARM: 0.009456
+
+ARIMA | p=1 d=2 q=1 | ar1=0.955 | ma1=0.136
+FARM: 0.001543
+
+ARIMA | p=0 d=0 q=1 | ma1=0.209
+FARM: 0.161487
+
+ARIMA | p=2 d=2 q=2 | ar1=0.706 ar2=0.323 | ma1=0.873 ma2=0.209
+FARM: 0.001020
+
+ARIMA | p=2 d=2 q=0 | ar1=0.985 ar2=0.601
+FARM: 0.033261
+
+ARIMA | p=2 d=0 q=2 | ar1=0.462 ar2=0.939 | ma1=0.023 ma2=0.637
+FARM: 0.042184
+
+ARIMA | p=2 d=1 q=0 | ar1=0.338 ar2=0.201
+FARM: 0.068616
+
+ARIMA | p=0 d=0 q=1 | ma1=0.136
+FARM: 0.155228

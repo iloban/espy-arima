@@ -2,7 +2,7 @@ package org.espy.arima;
 
 import java.util.Arrays;
 
-class ForecastAccuracyRelativeMetric {
+public class ForecastAccuracyRelativeMetric {
     private ForecastAccuracyRelativeMetric() {
     }
 

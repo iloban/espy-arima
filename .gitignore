@@ -72,3 +72,8 @@ gradle-app.setting
 
 # Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
 !gradle-wrapper.jar
+
+/lab-x/
+/lab/src/main/resources/experiments/
+/lab/src/main/resources/reports/
+/lab/src/main/resources/suites/

@@ -1,7 +1,7 @@
 package org.espy.lab;
 
-import com.google.common.collect.ImmutableList;
-
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public final class TimeSeriesSuiteConfiguration {
@@ -10,14 +10,14 @@ public final class TimeSeriesSuiteConfiguration {
 
     private final List<TimeSeriesGenerator> generators;
 
-    private final ChoiceStrategyType choiceStrategyType;
+    private final GeneratorChoiceStrategyType generatorChoiceStrategyType;
 
     private final int generatorUsageCount;
 
     private TimeSeriesSuiteConfiguration(Builder builder) {
         this.seed = builder.seed;
         this.generators = builder.generators;
-        this.choiceStrategyType = builder.choiceStrategyType;
+        this.generatorChoiceStrategyType = builder.generatorChoiceStrategyType;
         this.generatorUsageCount = builder.generatorUsageCount;
     }
 
@@ -33,8 +33,8 @@ public final class TimeSeriesSuiteConfiguration {
         return generators;
     }
 
-    public ChoiceStrategyType getChoiceStrategyType() {
-        return choiceStrategyType;
+    public GeneratorChoiceStrategyType getGeneratorChoiceStrategyType() {
+        return generatorChoiceStrategyType;
     }
 
     public int getGeneratorUsageCount() {
@@ -47,7 +47,7 @@ public final class TimeSeriesSuiteConfiguration {
 
         private List<TimeSeriesGenerator> generators;
 
-        private ChoiceStrategyType choiceStrategyType;
+        private GeneratorChoiceStrategyType generatorChoiceStrategyType;
 
         private int generatorUsageCount;
 
@@ -60,13 +60,13 @@ public final class TimeSeriesSuiteConfiguration {
             return this;
         }
 
-        public Builder setGenerators(TimeSeriesGenerator[] generators) {
-            this.generators = ImmutableList.copyOf(generators);
+        public Builder setGenerators(List<TimeSeriesGenerator> generators) {
+            this.generators = Collections.unmodifiableList(new ArrayList<>(generators));
             return this;
         }
 
-        public Builder setChoiceStrategyType(ChoiceStrategyType choiceStrategyType) {
-            this.choiceStrategyType = choiceStrategyType;
+        public Builder setChoiceStrategy(GeneratorChoiceStrategyType generatorChoiceStrategyType) {
+            this.generatorChoiceStrategyType = generatorChoiceStrategyType;
             return this;
         }
 

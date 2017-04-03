@@ -1,7 +1,6 @@
 package org.espy.lab;
 
-import com.google.common.collect.ImmutableList;
-
+import java.util.Arrays;
 import java.util.List;
 
 public final class ExperimentConfiguration {
@@ -43,7 +42,7 @@ public final class ExperimentConfiguration {
         }
 
         public Builder setProcessors(TimeSeriesProcessor... processors) {
-            this.processors = ImmutableList.copyOf(processors);
+            this.processors = Arrays.asList(processors);
             return this;
         }
     }

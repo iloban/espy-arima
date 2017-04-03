@@ -6,31 +6,45 @@ import java.util.List;
 import java.util.Random;
 
 public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy {
+
     private static final int CONTROL_OBSERVATION_COUNT = 5;
+
     private static final int MIN_LEARNING_OBSERVATION_COUNT = 5;
+
     private static final int MAX_INTEGRATION_ORDER = 2;
+
     private static final int MAX_AR_ORDER = 2;
+
     private static final int MAX_MA_ORDER = 2;
+
     private static final int ITERATION_LIMIT = 100;
+
     private static final int NON_SIGNIFICANT_IMPROVEMENT_LIMIT = 3;
+
     private static final double SIGNIFICANT_IMPROVEMENT_THRESHOLD = 1E-3;
 
     private final double[] learningObservations;
+
     private final double[] controlObservations;
 
     private Population population;
+
     private Individual bestIndividual;
+
     private int nonSignificantImprovementCount;
+
     private int iterationCount;
 
-    public GeneticAlgorithmArimaFitterStrategy(double[] observations) {
+    GeneticAlgorithmArimaFitterStrategy(double[] observations) {
         int minObservationCount = CONTROL_OBSERVATION_COUNT + MIN_LEARNING_OBSERVATION_COUNT;
         if (observations.length < minObservationCount) {
             throw new IllegalArgumentException(
                     "Observations count is too small (at least need " + minObservationCount + " observations)");
         }
-        this.learningObservations =
-                DoubleUtils.copyBegin(observations, observations.length - CONTROL_OBSERVATION_COUNT);
+        this.learningObservations = DoubleUtils.copyBegin(
+                observations,
+                observations.length - CONTROL_OBSERVATION_COUNT
+        );
         this.controlObservations = DoubleUtils.copyEnd(observations, CONTROL_OBSERVATION_COUNT);
     }
 

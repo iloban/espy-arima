@@ -5,7 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.Scanner;
 
-import static org.espy.lab.ChoiceStrategyType.RANDOM;
+import static org.espy.lab.GeneratorChoiceStrategyType.RANDOM;
 
 public class Main {
 
@@ -29,9 +29,9 @@ public class Main {
     private static void generateTimeSeriesSuite() throws FileNotFoundException {
         TimeSeriesSuiteConfiguration configuration = TimeSeriesSuiteConfiguration.builder()
                 .setSeed(1)
-                .setGenerators(ArimaGenerators.natural())
+                .setGenerators(ArimaGenerators.natural(100))
                 .setGeneratorUsageCount(3)
-                .setChoiceStrategyType(RANDOM)
+                .setChoiceStrategy(RANDOM)
                 .build();
         TimeSeriesSuite suite = TimeSeriesSuiteFactory.createTimeSeriesSuite(configuration);
         try (PrintWriter writer = new PrintWriter("lab/src/main/resources/suites/suite_1.txt")) {

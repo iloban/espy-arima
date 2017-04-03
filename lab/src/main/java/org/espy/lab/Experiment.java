@@ -1,14 +1,9 @@
 package org.espy.lab;
 
-import com.google.common.collect.ImmutableList;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public final class Experiment {
 
@@ -18,12 +13,12 @@ public final class Experiment {
 
     public Experiment(String timeSeriesSuiteAbsoluteFilePath, List<TimeSeriesProcessor> processors) {
         this.timeSeriesSuiteAbsoluteFilePath = timeSeriesSuiteAbsoluteFilePath;
-        this.processors = ImmutableList.copyOf(processors);
+        this.processors = processors;
     }
 
     public static Experiment unmarshal(Scanner scanner) {
         String filePath = scanner.nextLine();
-        return new Experiment(filePath, ImmutableList.of(new CheckArimaProcessor()));
+        return new Experiment(filePath, Collections.singletonList(new CheckArimaProcessor()));
     }
 
     public void marshal(PrintWriter writer) {
@@ -49,6 +44,6 @@ public final class Experiment {
                 reports.add(processor.run(sample));
             }
         }
-        return new DefaultExperimentReport(reports);
+        return new ExperimentReport(reports);
     }
 }

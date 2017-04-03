@@ -2,7 +2,7 @@ package org.espy.lab;
 
 import java.io.PrintWriter;
 
-public class ProcessorReport {
+public final class ProcessorReport {
 
     private final TimeSeriesSampleMetadata metadata;
 
@@ -20,6 +20,14 @@ public class ProcessorReport {
     public void marshal(PrintWriter writer) {
         metadata.marshal(writer);
         writer.println();
-        writer.printf("FARM: %f", farm);
+        writer.printf("FARM: %f%%", farm * 100);
+    }
+
+    public TimeSeriesSampleMetadata getMetadata() {
+        return metadata;
+    }
+
+    public double getFarm() {
+        return farm;
     }
 }

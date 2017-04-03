@@ -14,10 +14,14 @@ public class ArimaGenerator implements TimeSeriesGenerator {
 
     private final int q;
 
-    public ArimaGenerator(int p, int d, int q) {
+    private final int timeSeriesLength;
+
+    public ArimaGenerator(int p, int d, int q, int timeSeriesLength) {
+        // TODO: 4/2/2017 add preconditions
         this.p = p;
         this.d = d;
         this.q = q;
+        this.timeSeriesLength = timeSeriesLength;
     }
 
     @Override public TimeSeriesSample generate(GeneratorContext generatorContext) {
@@ -32,7 +36,7 @@ public class ArimaGenerator implements TimeSeriesGenerator {
                 d,
                 realization.getMaCoefficients()
         );
-        return new TimeSeriesSample(metadata, realization.next(100));
+        return new TimeSeriesSample(metadata, realization.next(timeSeriesLength));
     }
 
     private double[] generateCoefficients(int count, Random random) {

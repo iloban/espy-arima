@@ -1,27 +1,21 @@
 package org.espy.lab;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ArimaGenerators {
 
-    public static TimeSeriesGenerator[] natural() {
-        return new TimeSeriesGenerator[]{
-                new ArimaGenerator(1, 0, 0),
-                new ArimaGenerator(2, 0, 0),
-                new ArimaGenerator(0, 0, 1),
-                new ArimaGenerator(0, 0, 2),
-                new ArimaGenerator(1, 0, 1),
-                new ArimaGenerator(2, 0, 2),
-                new ArimaGenerator(1, 1, 0),
-                new ArimaGenerator(2, 1, 0),
-                new ArimaGenerator(0, 1, 1),
-                new ArimaGenerator(0, 1, 2),
-                new ArimaGenerator(1, 1, 1),
-                new ArimaGenerator(2, 1, 2),
-                new ArimaGenerator(1, 2, 0),
-                new ArimaGenerator(2, 2, 0),
-                new ArimaGenerator(0, 2, 1),
-                new ArimaGenerator(0, 2, 2),
-                new ArimaGenerator(1, 2, 1),
-                new ArimaGenerator(2, 2, 2)
-        };
+    public static List<TimeSeriesGenerator> natural(int timeSeriesLength) {
+        List<TimeSeriesGenerator> generators = new ArrayList<>();
+        for (int d = 0; d <= 2; d++) {
+            for (int q = 0; q <= 2; q++) {
+                for (int p = 0; p <= 2; p++) {
+                    if (p != 0 && q != 0) {
+                        generators.add(new ArimaGenerator(p, d, q, timeSeriesLength));
+                    }
+                }
+            }
+        }
+        return generators;
     }
 }

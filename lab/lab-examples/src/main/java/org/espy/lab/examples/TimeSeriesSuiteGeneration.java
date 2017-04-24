@@ -1,10 +1,10 @@
 package org.espy.lab.examples;
 
-import org.espy.lab.TimeSeriesSuite;
-import org.espy.lab.TimeSeriesSuiteConfiguration;
-import org.espy.lab.TimeSeriesSuiteFactory;
-import org.espy.lab.WritableUtils;
-import org.espy.lab.arima.ArimaGenerators;
+import org.espy.lab.arima.generator.ArimaGenerators;
+import org.espy.lab.suite.TimeSeriesSuite;
+import org.espy.lab.suite.TimeSeriesSuiteConfiguration;
+import org.espy.lab.suite.TimeSeriesSuiteFactory;
+import org.espy.lab.util.WritableUtils;
 
 import java.io.FileNotFoundException;
 

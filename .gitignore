@@ -74,6 +74,5 @@ gradle-app.setting
 !gradle-wrapper.jar
 
 /lab-x/
-/lab/src/main/resources/experiments/
-/lab/src/main/resources/reports/
-/lab/src/main/resources/suites/
+/lab/lab-examples/src/main/resources/reports/
+/lab/lab-examples/src/main/resources/suites/

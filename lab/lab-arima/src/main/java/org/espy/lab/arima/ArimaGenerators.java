@@ -1,4 +1,6 @@
-package org.espy.lab;
+package org.espy.lab.arima;
+
+import org.espy.lab.TimeSeriesGenerator;
 
 import java.util.ArrayList;
 import java.util.List;

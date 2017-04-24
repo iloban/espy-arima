@@ -1,1 +1,4 @@
-include 'arima', 'lab'
+include 'arima'
+include 'lab:lab-core'
+include 'lab:lab-arima'
+include 'lab:lab-examples'

@@ -25,8 +25,10 @@ public class ExperimentReport implements Report {
     }
 
     @Override public void write(PrintWriter writer) {
-        writer.println("Time series suite file name: " + suiteFileName);
-        writer.println("Timestamp: " + LocalDateTime.now());
+        writer.println("Time series suite file name:");
+        writer.println(suiteFileName);
+        writer.println("Timestamp:");
+        writer.println(LocalDateTime.now());
         writer.println();
         int i = 1;
         for (Map.Entry<TimeSeriesProcessor, List<TimeSeriesProcessorReport>> entry : reports.entrySet()) {
@@ -38,7 +40,7 @@ public class ExperimentReport implements Report {
                 writer.println();
             }
             writer.print(i++);
-            writer.print(". ");
+            writer.print(" ");
             processor.write(writer);
             writer.println();
             writer.println();

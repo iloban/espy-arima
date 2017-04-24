@@ -1,7 +1,8 @@
-package org.espy.lab;
+package org.espy.lab.arima;
 
 import org.espy.arima.ArimaProcess;
 import org.espy.arima.DefaultArimaForecaster;
+import org.espy.lab.Writable;
 
 import java.io.PrintWriter;
 import java.util.Arrays;

@@ -26,6 +26,7 @@ public final class Experiment {
     }
 
     public ExperimentReport run() {
+        init();
         TimeSeriesSuite suite = readTimeSeriesSuite();
         ExperimentReport.Builder builder = ExperimentReport.builder()
                 .setTimeSeriesSuiteFileName(suiteFile.getAbsolutePath())
@@ -36,6 +37,12 @@ public final class Experiment {
             }
         }
         return builder.build();
+    }
+
+    private void init() {
+        for (TimeSeriesProcessor processor : processors) {
+            processor.init();
+        }
     }
 
     private TimeSeriesSuite readTimeSeriesSuite() {

@@ -1,10 +1,9 @@
-package org.espy.lab;
+package org.espy.lab.arima;
 
 import org.espy.arima.ArimaProcess;
+import org.espy.lab.*;
 
 import java.io.PrintWriter;
-
-import static org.espy.lab.TimeSeriesSampleType.ARIMA;
 
 public final class ArimaTimeSeriesProcessor implements TimeSeriesProcessor {
 
@@ -24,12 +23,16 @@ public final class ArimaTimeSeriesProcessor implements TimeSeriesProcessor {
         this.forecastComparator = forecastComparator;
     }
 
+    @Override public void init() {
+        ArimaTimeSeriesSampleMetadata.register();
+    }
+
     @Override public TimeSeriesProcessorReport run(TimeSeriesSample sample) {
         TimeSeriesSampleMetadata metadata = sample.getMetadata();
-        if (!ARIMA.supports(metadata)) {
+        if (!(metadata instanceof ArimaTimeSeriesSampleMetadata)) {
             return new UnsupportedSampleProcessorReport(PROCESSOR_NAME, metadata);
         }
-        ArimaTimeSeriesSampleMetadata arimaMetadata = ARIMA.cast(metadata);
+        ArimaTimeSeriesSampleMetadata arimaMetadata = ArimaTimeSeriesSampleMetadata.class.cast(metadata);
         double[] observedPart = sample.getObservedPart();
         double[] unobservedPart = sample.getUnobservedPart();
         ArimaProcess arimaProcess = fitter.fit(arimaMetadata, observedPart);

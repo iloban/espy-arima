@@ -1,8 +1,11 @@
-package org.espy.lab;
+package org.espy.lab.arima;
 
 import org.espy.arima.ArimaProcessRealization;
 import org.espy.arima.DefaultArimaProcess;
 import org.espy.arima.DefaultArimaProcessRealization;
+import org.espy.lab.GeneratorContext;
+import org.espy.lab.TimeSeriesGenerator;
+import org.espy.lab.TimeSeriesSample;
 
 import java.util.Random;
 

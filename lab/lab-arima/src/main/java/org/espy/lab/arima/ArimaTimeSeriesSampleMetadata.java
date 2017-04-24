@@ -1,9 +1,14 @@
-package org.espy.lab;
+package org.espy.lab.arima;
+
+import org.espy.lab.TimeSeriesSampleMetadata;
+import org.espy.lab.TimeSeriesSampleMetadataType;
 
 import java.io.PrintWriter;
 import java.util.Scanner;
 
 public class ArimaTimeSeriesSampleMetadata implements TimeSeriesSampleMetadata {
+
+    private static final String NAME = "ARIMA";
 
     private final int integrationOrder;
 
@@ -25,6 +30,10 @@ public class ArimaTimeSeriesSampleMetadata implements TimeSeriesSampleMetadata {
         this.maCoefficients = maCoefficients;
         this.observedPartLength = observedPartLength;
         this.unobservedPartLength = unobservedPartLength;
+    }
+
+    public static void register() {
+        TimeSeriesSampleMetadataType.register(NAME, ArimaTimeSeriesSampleMetadata::read);
     }
 
     public static ArimaTimeSeriesSampleMetadata read(Scanner scanner) {
@@ -84,8 +93,7 @@ public class ArimaTimeSeriesSampleMetadata implements TimeSeriesSampleMetadata {
     }
 
     @Override public String toString() {
-        StringBuilder builder = new StringBuilder()
-                .append(getType())
+        StringBuilder builder = new StringBuilder(NAME)
                 .append(" | obs_len=")
                 .append(observedPartLength)
                 .append(" | unobs_len=")
@@ -107,9 +115,5 @@ public class ArimaTimeSeriesSampleMetadata implements TimeSeriesSampleMetadata {
             builder.append(" ma").append(i + 1).append("=").append(maCoefficients[i]);
         }
         return builder.toString();
-    }
-
-    @Override public TimeSeriesSampleType getType() {
-        return TimeSeriesSampleType.ARIMA;
     }
 }

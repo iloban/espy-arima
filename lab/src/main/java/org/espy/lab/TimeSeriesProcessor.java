@@ -1,10 +1,6 @@
 package org.espy.lab;
 
-import java.io.PrintWriter;
+public interface TimeSeriesProcessor extends Writable {
 
-public interface TimeSeriesProcessor {
-
-    void marshal(PrintWriter writer);
-
-    ProcessorReport run(TimeSeriesSample sample);
+    TimeSeriesProcessorReport run(TimeSeriesSample sample);
 }

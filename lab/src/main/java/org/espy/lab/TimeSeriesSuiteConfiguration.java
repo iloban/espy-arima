@@ -47,7 +47,7 @@ public final class TimeSeriesSuiteConfiguration {
 
         private List<TimeSeriesGenerator> generators;
 
-        private GeneratorChoiceStrategyType generatorChoiceStrategyType;
+        private GeneratorChoiceStrategyType generatorChoiceStrategyType = GeneratorChoiceStrategyType.SEQUENTIAL;
 
         private int generatorUsageCount;
 

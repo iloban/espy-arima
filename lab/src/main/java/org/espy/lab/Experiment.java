@@ -2,48 +2,47 @@ package org.espy.lab;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.PrintWriter;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Scanner;
 
 public final class Experiment {
 
-    private final String timeSeriesSuiteAbsoluteFilePath;
+    private final File suiteFile;
+
+    private final TimeSeriesProcessorReportAggregator aggregator;
 
     private final List<TimeSeriesProcessor> processors;
 
-    public Experiment(String timeSeriesSuiteAbsoluteFilePath, List<TimeSeriesProcessor> processors) {
-        this.timeSeriesSuiteAbsoluteFilePath = timeSeriesSuiteAbsoluteFilePath;
-        this.processors = processors;
+    public Experiment(String suiteFileName,
+                      TimeSeriesProcessorReportAggregator aggregator,
+                      TimeSeriesProcessor... processors) {
+        suiteFile = new File(suiteFileName);
+        if (!suiteFile.exists()) {
+            throw new IllegalArgumentException("File not found: " + suiteFileName);
+        }
+        this.aggregator = aggregator;
+        this.processors = Arrays.asList(processors);
     }
 
-    public static Experiment unmarshal(Scanner scanner) {
-        String filePath = scanner.nextLine();
-        return new Experiment(filePath, Collections.singletonList(new CheckArimaProcessor()));
-    }
-
-    public void marshal(PrintWriter writer) {
-        writer.println(timeSeriesSuiteAbsoluteFilePath);
-        Iterator<TimeSeriesProcessor> iterator = processors.iterator();
-        while (iterator.hasNext()) {
-            TimeSeriesProcessor processor = iterator.next();
-            processor.marshal(writer);
-            if (iterator.hasNext()) {
-                writer.println();
+    public ExperimentReport run() {
+        TimeSeriesSuite suite = readTimeSeriesSuite();
+        ExperimentReport.Builder builder = ExperimentReport.builder()
+                .setTimeSeriesSuiteFileName(suiteFile.getAbsolutePath())
+                .setTimeSeriesProcessorReportAggregator(aggregator);
+        for (TimeSeriesProcessor processor : processors) {
+            for (TimeSeriesSample sample : suite) {
+                builder.putTimeSeriesProcessorReport(processor, processor.run(sample));
             }
         }
+        return builder.build();
     }
 
-    public ExperimentReport run() throws FileNotFoundException {
-        TimeSeriesSuite suite;
-        try (Scanner scanner = new Scanner(new File(timeSeriesSuiteAbsoluteFilePath))) {
-            suite = TimeSeriesSuite.unmarshal(scanner);
+    private TimeSeriesSuite readTimeSeriesSuite() {
+        try (Scanner scanner = new Scanner(suiteFile)) {
+            return TimeSeriesSuite.read(scanner);
+        } catch (FileNotFoundException e) {
+            throw new IllegalStateException("Can't read a time series suite", e);
         }
-        List<ProcessorReport> reports = new ArrayList<>();
-        for (TimeSeriesSample sample : suite.getSamples()) {
-            for (TimeSeriesProcessor processor : processors) {
-                reports.add(processor.run(sample));
-            }
-        }
-        return new ExperimentReport(reports);
     }
 }

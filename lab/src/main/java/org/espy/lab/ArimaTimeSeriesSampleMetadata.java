@@ -11,16 +11,32 @@ public class ArimaTimeSeriesSampleMetadata implements TimeSeriesSampleMetadata {
 
     private final double[] maCoefficients;
 
-    public ArimaTimeSeriesSampleMetadata(double[] arCoefficients, int integrationOrder, double[] maCoefficients) {
+    private final int observedPartLength;
+
+    private final int unobservedPartLength;
+
+    public ArimaTimeSeriesSampleMetadata(double[] arCoefficients,
+                                         int integrationOrder,
+                                         double[] maCoefficients,
+                                         int observedPartLength,
+                                         int unobservedPartLength) {
         this.integrationOrder = integrationOrder;
         this.arCoefficients = arCoefficients;
         this.maCoefficients = maCoefficients;
+        this.observedPartLength = observedPartLength;
+        this.unobservedPartLength = unobservedPartLength;
     }
 
-    public static ArimaTimeSeriesSampleMetadata unmarshal(Scanner scanner) {
-        // " | p=0 d=2 q=2 | ma1=0.1 ma2=0.407"
+    public static ArimaTimeSeriesSampleMetadata read(Scanner scanner) {
+        // " | obs_len=40 | unobs_len=10 | p=0 d=2 q=2 | ma1=0.1 ma2=0.407"
         scanner.next();
         String raw = scanner.next();
+        int observedPartLength = Integer.parseInt(raw.substring(8));
+        scanner.next();
+        raw = scanner.next();
+        int unobservedPartLength = Integer.parseInt(raw.substring(10));
+        scanner.next();
+        raw = scanner.next();
         int p = Integer.parseInt(raw.substring(2));
         raw = scanner.next();
         int d = Integer.parseInt(raw.substring(2));
@@ -40,7 +56,7 @@ public class ArimaTimeSeriesSampleMetadata implements TimeSeriesSampleMetadata {
             raw = scanner.next();
             maCoefficients[i] = Double.parseDouble(raw.substring(4));
         }
-        return new ArimaTimeSeriesSampleMetadata(arCoefficients, d, maCoefficients);
+        return new ArimaTimeSeriesSampleMetadata(arCoefficients, d, maCoefficients, observedPartLength, unobservedPartLength);
     }
 
     public int getIntegrationOrder() {
@@ -55,24 +71,42 @@ public class ArimaTimeSeriesSampleMetadata implements TimeSeriesSampleMetadata {
         return maCoefficients;
     }
 
-    @Override public void marshal(PrintWriter writer) {
-        writer.print(getType());
-        writer.print(" | p=");
-        writer.print(arCoefficients.length);
-        writer.print(" d=");
-        writer.print(integrationOrder);
-        writer.print(" q=");
-        writer.print(maCoefficients.length);
-        writer.print(" |");
+    @Override public void write(PrintWriter writer) {
+        writer.print(this);
+    }
+
+    @Override public int getObservedPartLength() {
+        return observedPartLength;
+    }
+
+    @Override public int getUnobservedPartLength() {
+        return unobservedPartLength;
+    }
+
+    @Override public String toString() {
+        StringBuilder builder = new StringBuilder()
+                .append(getType())
+                .append(" | obs_len=")
+                .append(observedPartLength)
+                .append(" | unobs_len=")
+                .append(unobservedPartLength)
+                .append(" | p=")
+                .append(arCoefficients.length)
+                .append(" d=")
+                .append(integrationOrder)
+                .append(" q=")
+                .append(maCoefficients.length)
+                .append(" |");
         for (int i = 0; i < arCoefficients.length; i++) {
-            writer.print(" ar" + (i + 1) + "=" + arCoefficients[i]);
+            builder.append(" ar").append(i + 1).append("=").append(arCoefficients[i]);
         }
         if (arCoefficients.length > 0 && maCoefficients.length > 0) {
-            writer.print(" |");
+            builder.append(" |");
         }
         for (int i = 0; i < maCoefficients.length; i++) {
-            writer.print(" ma" + (i + 1) + "=" + maCoefficients[i]);
+            builder.append(" ma").append(i + 1).append("=").append(maCoefficients[i]);
         }
+        return builder.toString();
     }
 
     @Override public TimeSeriesSampleType getType() {

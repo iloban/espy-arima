@@ -1,10 +1,10 @@
 package org.espy.lab;
 
-import java.io.PrintWriter;
-
-public interface TimeSeriesSampleMetadata {
+public interface TimeSeriesSampleMetadata extends Writable {
 
     TimeSeriesSampleType getType();
 
-    void marshal(PrintWriter writer);
+    int getObservedPartLength();
+
+    int getUnobservedPartLength();
 }

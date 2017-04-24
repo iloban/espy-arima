@@ -1,19 +1,57 @@
 package org.espy.lab;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.function.Function;
 
-public enum TimeSeriesSampleType {
+public final class TimeSeriesSampleType<T extends TimeSeriesSampleMetadata> {
 
-    ARIMA(ArimaTimeSeriesSampleMetadata::unmarshal);
+    public static final TimeSeriesSampleType<ArimaTimeSeriesSampleMetadata> ARIMA = new TimeSeriesSampleType<>(
+            "ARIMA",
+            ArimaTimeSeriesSampleMetadata.class,
+            ArimaTimeSeriesSampleMetadata::read
+    );
 
-    private final Function<Scanner, TimeSeriesSampleMetadata> unmarshaller;
+    private static Map<String, TimeSeriesSampleType<? extends TimeSeriesSampleMetadata>> values;
 
-    TimeSeriesSampleType(Function<Scanner, TimeSeriesSampleMetadata> unmarshaller) {
-        this.unmarshaller = unmarshaller;
+    private final String name;
+
+    private final Class<T> metadataClass;
+
+    private final Function<Scanner, T> reader;
+
+    private TimeSeriesSampleType(String name, Class<T> metadataClass, Function<Scanner, T> reader) {
+        this.name = name;
+        this.metadataClass = metadataClass;
+        this.reader = reader;
+        if (values == null) {
+            values = new LinkedHashMap<>();
+        }
+        values.put(name, this);
     }
 
-    public Function<Scanner, TimeSeriesSampleMetadata> unmarshaller() {
-        return unmarshaller;
+    public static TimeSeriesSampleType<? extends TimeSeriesSampleMetadata> valueOf(String value) {
+        TimeSeriesSampleType<? extends TimeSeriesSampleMetadata> type = values.get(value);
+        if (type == null) {
+            throw new IllegalArgumentException("Unexpected sample type: " + value);
+        }
+        return type;
+    }
+
+    public Function<Scanner, T> reader() {
+        return reader;
+    }
+
+    public boolean supports(TimeSeriesSampleMetadata metadata) {
+        return metadataClass.isAssignableFrom(metadata.getClass());
+    }
+
+    public T cast(TimeSeriesSampleMetadata metadata) {
+        return metadataClass.cast(metadata);
+    }
+
+    @Override public String toString() {
+        return name;
     }
 }

@@ -14,14 +14,17 @@ public class ArimaGenerator implements TimeSeriesGenerator {
 
     private final int q;
 
-    private final int timeSeriesLength;
+    private final int observedPartLength;
 
-    public ArimaGenerator(int p, int d, int q, int timeSeriesLength) {
+    private final int unobservedPartLength;
+
+    public ArimaGenerator(int p, int d, int q, int observedPartLength, int unobservedPartLength) {
         // TODO: 4/2/2017 add preconditions
         this.p = p;
         this.d = d;
         this.q = q;
-        this.timeSeriesLength = timeSeriesLength;
+        this.observedPartLength = observedPartLength;
+        this.unobservedPartLength = unobservedPartLength;
     }
 
     @Override public TimeSeriesSample generate(GeneratorContext generatorContext) {
@@ -34,9 +37,15 @@ public class ArimaGenerator implements TimeSeriesGenerator {
         ArimaTimeSeriesSampleMetadata metadata = new ArimaTimeSeriesSampleMetadata(
                 realization.getArCoefficients(),
                 d,
-                realization.getMaCoefficients()
+                realization.getMaCoefficients(),
+                observedPartLength,
+                unobservedPartLength
         );
-        return new TimeSeriesSample(metadata, realization.next(timeSeriesLength));
+        return new TimeSeriesSample(
+                metadata,
+                realization.next(observedPartLength),
+                realization.next(unobservedPartLength)
+        );
     }
 
     private double[] generateCoefficients(int count, Random random) {

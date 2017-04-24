@@ -1,3 +1,23 @@
+group 'org.espy.lab'
+version = '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'maven-publish'
+
+sourceCompatibility = 1.8
+
+repositories {
+    jcenter()
+}
+
 dependencies {
     compile project(':lab:lab-arima')
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
 }

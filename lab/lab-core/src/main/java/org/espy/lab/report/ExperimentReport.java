@@ -6,24 +6,28 @@ import java.io.PrintWriter;
 import java.time.LocalDateTime;
 import java.util.*;
 
-public class ExperimentReport implements Report {
+public class ExperimentReport<R extends TimeSeriesProcessorReport> implements Report {
 
     private final String suiteFileName;
 
-    private final Map<TimeSeriesProcessor, List<TimeSeriesProcessorReport>> reports;
+    private final Map<TimeSeriesProcessor<R>, List<R>> reports;
 
-    private final Map<TimeSeriesProcessor, AggregatedTimeSeriesProcessorReport> aggregatedReports;
+    private final Map<TimeSeriesProcessor<R>, AggregatedTimeSeriesProcessorReport> aggregatedReports;
+
+    private final Map<TimeSeriesProcessor<R>, List<TimeSeriesProcessorReport>> errorReports;
 
     private ExperimentReport(String suiteFileName,
-                             Map<TimeSeriesProcessor, List<TimeSeriesProcessorReport>> reports,
-                             Map<TimeSeriesProcessor, AggregatedTimeSeriesProcessorReport> aggregatedReports) {
+                             Map<TimeSeriesProcessor<R>, List<R>> reports,
+                             Map<TimeSeriesProcessor<R>, AggregatedTimeSeriesProcessorReport> aggregatedReports,
+                             Map<TimeSeriesProcessor<R>, List<TimeSeriesProcessorReport>> errorReports) {
         this.suiteFileName = suiteFileName;
         this.reports = reports;
         this.aggregatedReports = aggregatedReports;
+        this.errorReports = errorReports;
     }
 
-    public static Builder builder() {
-        return new Builder();
+    public static <R extends TimeSeriesProcessorReport> Builder<R> builder() {
+        return new Builder<>();
     }
 
     @Override public void write(PrintWriter writer) {
@@ -33,60 +37,75 @@ public class ExperimentReport implements Report {
         writer.println(LocalDateTime.now());
         writer.println();
         int i = 1;
-        for (Map.Entry<TimeSeriesProcessor, List<TimeSeriesProcessorReport>> entry : reports.entrySet()) {
-            TimeSeriesProcessor processor = entry.getKey();
-            Iterator<TimeSeriesProcessorReport> reportIterator = entry.getValue().iterator();
-            AggregatedTimeSeriesProcessorReport aggregatedReport = aggregatedReports.get(processor);
+        for (Map.Entry<TimeSeriesProcessor<R>, List<R>> entry : reports.entrySet()) {
             if (i > 1) {
                 writer.println();
                 writer.println();
             }
             writer.print(i++);
             writer.print(" ");
+            TimeSeriesProcessor<R> processor = entry.getKey();
             processor.write(writer);
             writer.println();
             writer.println();
-            aggregatedReport.write(writer);
+            aggregatedReports.get(processor).write(writer);
             writer.println();
             writer.println();
-            while (reportIterator.hasNext()) {
-                reportIterator.next().write(writer);
-                if (reportIterator.hasNext()) {
-                    writer.println();
-                }
+            if (errorReports.containsKey(processor)) {
+                writeReports(writer, errorReports.get(processor).iterator());
+                writer.println();
+                writer.println();
+            }
+            writeReports(writer, entry.getValue().iterator());
+        }
+    }
+
+    private void writeReports(PrintWriter writer, Iterator<? extends TimeSeriesProcessorReport> reportIterator) {
+        while (reportIterator.hasNext()) {
+            reportIterator.next().write(writer);
+            if (reportIterator.hasNext()) {
+                writer.println();
             }
         }
     }
 
-    public static final class Builder {
+    public static final class Builder<R extends TimeSeriesProcessorReport> {
 
         private String suiteFileName;
 
-        private TimeSeriesProcessorReportAggregator aggregator;
+        private TimeSeriesProcessorReportAggregator<R> aggregator;
 
-        private Map<TimeSeriesProcessor, List<TimeSeriesProcessorReport>> reports = new LinkedHashMap<>();
+        private Map<TimeSeriesProcessor<R>, List<R>> reports = new LinkedHashMap<>();
 
-        public ExperimentReport build() {
-            Map<TimeSeriesProcessor, AggregatedTimeSeriesProcessorReport> aggregatedReports = new HashMap<>();
-            for (Map.Entry<TimeSeriesProcessor, List<TimeSeriesProcessorReport>> entry : reports.entrySet()) {
+        private Map<TimeSeriesProcessor<R>, List<TimeSeriesProcessorReport>> errorReports = new LinkedHashMap<>();
+
+        public ExperimentReport<R> build() {
+            Map<TimeSeriesProcessor<R>, AggregatedTimeSeriesProcessorReport> aggregatedReports = new HashMap<>();
+            for (Map.Entry<TimeSeriesProcessor<R>, List<R>> entry : reports.entrySet()) {
                 aggregatedReports.put(entry.getKey(), aggregator.aggregate(entry.getValue()));
             }
-            return new ExperimentReport(suiteFileName, reports, aggregatedReports);
+            return new ExperimentReport<>(suiteFileName, reports, aggregatedReports, errorReports);
         }
 
-        public Builder setTimeSeriesSuiteFileName(String fileName) {
+        public Builder<R> setTimeSeriesSuiteFileName(String fileName) {
             this.suiteFileName = fileName;
             return this;
         }
 
-        public Builder setTimeSeriesProcessorReportAggregator(TimeSeriesProcessorReportAggregator aggregator) {
+        public Builder<R> setTimeSeriesProcessorReportAggregator(TimeSeriesProcessorReportAggregator<R> aggregator) {
             this.aggregator = aggregator;
             return this;
         }
 
-        public Builder putTimeSeriesProcessorReport(TimeSeriesProcessor processor, TimeSeriesProcessorReport report) {
-            List<TimeSeriesProcessorReport> reportsList = reports.computeIfAbsent(processor, key -> new ArrayList<>());
+        public Builder<R> putTimeSeriesProcessorReport(TimeSeriesProcessor<R> processor, R report) {
+            List<R> reportsList = reports.computeIfAbsent(processor, key -> new ArrayList<>());
             reportsList.add(report);
+            return this;
+        }
+
+        public Builder<R> putTimeSeriesProcessorErrorReport(TimeSeriesProcessor<R> processor, TimeSeriesProcessorReport errorReport) {
+            List<TimeSeriesProcessorReport> reportsList = errorReports.computeIfAbsent(processor, key -> new ArrayList<>());
+            reportsList.add(errorReport);
             return this;
         }
     }

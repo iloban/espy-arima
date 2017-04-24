@@ -10,6 +10,7 @@ import org.espy.lab.report.farm.FarmTimeSeriesProcessorReportAggregator;
 import org.espy.lab.util.WritableUtils;
 
 import java.io.FileNotFoundException;
+import java.util.Collections;
 
 public class ExperimentRunner {
 
@@ -17,11 +18,11 @@ public class ExperimentRunner {
         Experiment experiment = new Experiment<>(
                 "lab/lab-examples/src/main/resources/suites/suite_1.txt",
                 new FarmTimeSeriesProcessorReportAggregator(),
-                new ArimaTimeSeriesProcessor<>(
+                Collections.singletonList(new ArimaTimeSeriesProcessor<>(
                         new IdentityArimaFitter(),
                         new ArimaForecaster(),
                         new FarmForecastComparator()
-                )
+                ))
         );
         ExperimentReport report = experiment.run();
         WritableUtils.save(report, "lab/lab-examples/src/main/resources/reports", "report_1.txt");

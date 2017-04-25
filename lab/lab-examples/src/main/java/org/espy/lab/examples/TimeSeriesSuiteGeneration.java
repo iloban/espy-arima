@@ -11,12 +11,17 @@ import java.io.FileNotFoundException;
 public class TimeSeriesSuiteGeneration {
 
     public static void main(String[] args) throws FileNotFoundException {
+
+        int i = 2;
+
         TimeSeriesSuiteConfiguration configuration = TimeSeriesSuiteConfiguration.builder()
-                .setSeed(1)
-                .setGenerators(ArimaGenerators.natural(40, 10))
-                .setGeneratorUsageCount(10)
+                .setSeed(2)
+                .setGenerators(ArimaGenerators.natural(0.5, 1, 0.02, 0.4).build())
+                .setGeneratorUsageCount(1000)
                 .build();
+
         TimeSeriesSuite suite = TimeSeriesSuiteFactory.createTimeSeriesSuite(configuration);
-        WritableUtils.save(suite, "lab/lab-examples/src/main/resources/suites", "suite_1.txt");
+
+        WritableUtils.save(suite, "lab/lab-examples/src/main/resources/test-suites", "suite_" + i + ".txt");
     }
 }

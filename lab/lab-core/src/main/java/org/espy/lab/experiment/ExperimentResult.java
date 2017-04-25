@@ -1,12 +1,16 @@
-package org.espy.lab.report;
+package org.espy.lab.experiment;
 
 import org.espy.lab.processor.TimeSeriesProcessor;
+import org.espy.lab.report.AggregatedTimeSeriesProcessorReport;
+import org.espy.lab.report.Report;
+import org.espy.lab.report.TimeSeriesProcessorReport;
+import org.espy.lab.report.TimeSeriesProcessorReportAggregator;
 
 import java.io.PrintWriter;
 import java.time.LocalDateTime;
 import java.util.*;
 
-public class ExperimentReport<R extends TimeSeriesProcessorReport> implements Report {
+public class ExperimentResult<R extends TimeSeriesProcessorReport> {
 
     private final String suiteFileName;
 
@@ -16,7 +20,7 @@ public class ExperimentReport<R extends TimeSeriesProcessorReport> implements Re
 
     private final Map<TimeSeriesProcessor<R>, List<TimeSeriesProcessorReport>> errorReports;
 
-    private ExperimentReport(String suiteFileName,
+    private ExperimentResult(String suiteFileName,
                              Map<TimeSeriesProcessor<R>, List<R>> reports,
                              Map<TimeSeriesProcessor<R>, AggregatedTimeSeriesProcessorReport> aggregatedReports,
                              Map<TimeSeriesProcessor<R>, List<TimeSeriesProcessorReport>> errorReports) {
@@ -30,41 +34,67 @@ public class ExperimentReport<R extends TimeSeriesProcessorReport> implements Re
         return new Builder<>();
     }
 
-    @Override public void write(PrintWriter writer) {
-        writer.println("Time series suite file name:");
-        writer.println(suiteFileName);
-        writer.println("Timestamp:");
-        writer.println(LocalDateTime.now());
-        writer.println();
-        int i = 1;
-        for (Map.Entry<TimeSeriesProcessor<R>, List<R>> entry : reports.entrySet()) {
-            if (i > 1) {
-                writer.println();
-                writer.println();
-            }
-            writer.print(i++);
-            writer.print(" ");
-            TimeSeriesProcessor<R> processor = entry.getKey();
-            processor.write(writer);
-            writer.println();
-            writer.println();
-            aggregatedReports.get(processor).write(writer);
-            writer.println();
-            writer.println();
-            if (errorReports.containsKey(processor)) {
-                writeReports(writer, errorReports.get(processor).iterator());
-                writer.println();
-                writer.println();
-            }
-            writeReports(writer, entry.getValue().iterator());
-        }
+    public Report getFullReport() {
+        return new ExperimentReport<>(this, true);
     }
 
-    private void writeReports(PrintWriter writer, Iterator<? extends TimeSeriesProcessorReport> reportIterator) {
-        while (reportIterator.hasNext()) {
-            reportIterator.next().write(writer);
-            if (reportIterator.hasNext()) {
+    public Report getShortReport() {
+        return new ExperimentReport<>(this, false);
+    }
+
+    public static final class ExperimentReport<R extends TimeSeriesProcessorReport> implements Report {
+
+        private final ExperimentResult<R> result;
+
+        private final boolean full;
+
+        public ExperimentReport(ExperimentResult<R> result, boolean full) {
+            this.result = result;
+            this.full = full;
+        }
+
+        @Override public void write(PrintWriter writer) {
+            writer.println("Time series suite file name:");
+            writer.println(result.suiteFileName);
+            writer.println("Timestamp:");
+            writer.println(LocalDateTime.now());
+            writer.println();
+            int i = 1;
+            int size = result.reports.size();
+            for (Map.Entry<TimeSeriesProcessor<R>, List<R>> entry : result.reports.entrySet()) {
+                writer.print(i++);
+                writer.print(". ");
+                TimeSeriesProcessor<R> processor = entry.getKey();
+                processor.write(writer);
                 writer.println();
+                writer.println();
+                result.aggregatedReports.get(processor).write(writer);
+                if (result.errorReports.containsKey(processor)) {
+                    writer.println();
+                    writer.println();
+                    writeReports(writer, result.errorReports.get(processor).iterator());
+                    writer.println();
+                    writer.println();
+                } else if (full || i <= size) {
+                    writer.println();
+                    writer.println();
+                }
+                if (full) {
+                    writeReports(writer, entry.getValue().iterator());
+                    if (i <= size) {
+                        writer.println();
+                        writer.println();
+                    }
+                }
+            }
+        }
+
+        private void writeReports(PrintWriter writer, Iterator<? extends TimeSeriesProcessorReport> reportIterator) {
+            while (reportIterator.hasNext()) {
+                reportIterator.next().write(writer);
+                if (reportIterator.hasNext()) {
+                    writer.println();
+                }
             }
         }
     }
@@ -79,12 +109,12 @@ public class ExperimentReport<R extends TimeSeriesProcessorReport> implements Re
 
         private Map<TimeSeriesProcessor<R>, List<TimeSeriesProcessorReport>> errorReports = new LinkedHashMap<>();
 
-        public ExperimentReport<R> build() {
+        public ExperimentResult<R> build() {
             Map<TimeSeriesProcessor<R>, AggregatedTimeSeriesProcessorReport> aggregatedReports = new HashMap<>();
             for (Map.Entry<TimeSeriesProcessor<R>, List<R>> entry : reports.entrySet()) {
                 aggregatedReports.put(entry.getKey(), aggregator.aggregate(entry.getValue()));
             }
-            return new ExperimentReport<>(suiteFileName, reports, aggregatedReports, errorReports);
+            return new ExperimentResult<>(suiteFileName, reports, aggregatedReports, errorReports);
         }
 
         public Builder<R> setTimeSeriesSuiteFileName(String fileName) {

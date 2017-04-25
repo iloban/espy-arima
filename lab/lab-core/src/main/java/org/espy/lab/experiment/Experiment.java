@@ -1,7 +1,6 @@
 package org.espy.lab.experiment;
 
 import org.espy.lab.processor.TimeSeriesProcessor;
-import org.espy.lab.report.ExperimentReport;
 import org.espy.lab.report.TimeSeriesProcessorReport;
 import org.espy.lab.report.TimeSeriesProcessorReportAggregator;
 import org.espy.lab.report.util.UnsupportedSampleProcessorReport;
@@ -32,10 +31,10 @@ public final class Experiment<R extends TimeSeriesProcessorReport> {
         this.processors = processors;
     }
 
-    public ExperimentReport<R> run() {
+    public ExperimentResult<R> run() {
         init();
         TimeSeriesSuite suite = readTimeSeriesSuite();
-        ExperimentReport.Builder<R> builder = ExperimentReport.<R>builder()
+        ExperimentResult.Builder<R> builder = ExperimentResult.<R>builder()
                 .setTimeSeriesSuiteFileName(suiteFile.getAbsolutePath())
                 .setTimeSeriesProcessorReportAggregator(aggregator);
         for (TimeSeriesProcessor<R> processor : processors) {

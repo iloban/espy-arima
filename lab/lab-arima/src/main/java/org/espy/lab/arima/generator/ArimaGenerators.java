@@ -1,23 +1,71 @@
 package org.espy.lab.arima.generator;
 
+import org.espy.lab.arima.generator.coefficient.ArimaCoefficientsGenerator;
+import org.espy.lab.arima.generator.coefficient.BoundedArimaCoefficientsGenerator;
+import org.espy.lab.arima.generator.coefficient.DefaultArimaCoefficientsGenerator;
 import org.espy.lab.generator.TimeSeriesGenerator;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ArimaGenerators {
+public final class ArimaGenerators {
 
-    public static List<TimeSeriesGenerator> natural(int observedPartLength, int unobservedPartLength) {
-        List<TimeSeriesGenerator> generators = new ArrayList<>();
-        for (int d = 0; d <= 2; d++) {
-            for (int q = 0; q <= 2; q++) {
-                for (int p = 0; p <= 2; p++) {
-                    if (p != 0 && q != 0) {
-                        generators.add(new ArimaGenerator(p, d, q, observedPartLength, unobservedPartLength));
+    public static Builder natural() {
+        return new Builder();
+    }
+
+    public static Builder natural(double minAr, double maxAr, double minMa, double maxMa) {
+        ArimaCoefficientsGenerator coefficientsGenerator = new BoundedArimaCoefficientsGenerator(
+                minAr,
+                maxAr,
+                minMa,
+                maxMa
+        );
+        return new Builder().setCoefficientsGenerator(coefficientsGenerator);
+    }
+
+    public static final class Builder {
+
+        private int minP = 0;
+        private int maxP = 2;
+        private int minD = 0;
+        private int maxD = 2;
+        private int minQ = 0;
+        private int maxQ = 2;
+
+        private int observedPartLength = 40;
+        private int unobservedPartLength = 10;
+
+        private ArimaCoefficientsGenerator coefficientsGenerator;
+
+        public List<TimeSeriesGenerator> build() {
+            List<TimeSeriesGenerator> generators = new ArrayList<>();
+            for (int d = minD; d <= maxD; d++) {
+                for (int q = minQ; q <= maxQ; q++) {
+                    for (int p = minP; p <= maxP; p++) {
+                        if (p != 0 && q != 0) {
+                            generators.add(createArimaGenerator(d, q, p));
+                        }
                     }
                 }
             }
+            return generators;
         }
-        return generators;
+
+        private ArimaGenerator createArimaGenerator(int d, int q, int p) {
+            if (coefficientsGenerator == null) {
+                coefficientsGenerator = new DefaultArimaCoefficientsGenerator();
+            }
+            return new ArimaGenerator(
+                    p, d, q,
+                    observedPartLength, unobservedPartLength,
+                    coefficientsGenerator
+            );
+        }
+
+        public Builder setCoefficientsGenerator(ArimaCoefficientsGenerator coefficientsGenerator) {
+            this.coefficientsGenerator = coefficientsGenerator;
+            return this;
+        }
     }
 }

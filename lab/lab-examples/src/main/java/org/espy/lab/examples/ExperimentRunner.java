@@ -1,30 +1,47 @@
 package org.espy.lab.examples;
 
 import org.espy.lab.arima.fitter.IdentityArimaFitter;
-import org.espy.lab.arima.forecast.ArimaForecaster;
+import org.espy.lab.arima.forecast.DefaultMultiStepsArimaForecaster;
+import org.espy.lab.arima.forecast.DefaultOneByOneArimaForecaster;
 import org.espy.lab.arima.processor.ArimaTimeSeriesProcessor;
 import org.espy.lab.experiment.Experiment;
+import org.espy.lab.experiment.ExperimentResult;
 import org.espy.lab.forecast.farm.FarmForecastComparator;
-import org.espy.lab.report.ExperimentReport;
 import org.espy.lab.report.farm.FarmTimeSeriesProcessorReportAggregator;
 import org.espy.lab.util.WritableUtils;
 
 import java.io.FileNotFoundException;
-import java.util.Collections;
+import java.util.Arrays;
 
 public class ExperimentRunner {
 
     public static void main(String[] args) throws FileNotFoundException {
+
+        int i = 1;
+
         Experiment experiment = new Experiment<>(
-                "lab/lab-examples/src/main/resources/suites/suite_1.txt",
+                "lab/lab-examples/src/main/resources/test-suites/suite_" + i + ".txt",
                 new FarmTimeSeriesProcessorReportAggregator(),
-                Collections.singletonList(new ArimaTimeSeriesProcessor<>(
-                        new IdentityArimaFitter(),
-                        new ArimaForecaster(),
-                        new FarmForecastComparator()
-                ))
+                Arrays.asList(
+                        new ArimaTimeSeriesProcessor<>(
+                                new IdentityArimaFitter(),
+                                new DefaultOneByOneArimaForecaster(),
+                                new FarmForecastComparator()
+                        ),
+                        new ArimaTimeSeriesProcessor<>(
+                                new IdentityArimaFitter(),
+                                new DefaultMultiStepsArimaForecaster(),
+                                new FarmForecastComparator()
+                        )
+                )
         );
-        ExperimentReport report = experiment.run();
-        WritableUtils.save(report, "lab/lab-examples/src/main/resources/reports", "report_1.txt");
+
+        ExperimentResult result = experiment.run();
+
+        WritableUtils.save(
+                result.getShortReport(),
+                "lab/lab-examples/src/main/resources/reports",
+                "report_" + i + ".txt"
+        );
     }
 }

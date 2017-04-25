@@ -3,6 +3,7 @@ package org.espy.lab.arima.generator;
 import org.espy.arima.ArimaProcessRealization;
 import org.espy.arima.DefaultArimaProcess;
 import org.espy.arima.DefaultArimaProcessRealization;
+import org.espy.lab.arima.generator.coefficient.ArimaCoefficientsGenerator;
 import org.espy.lab.arima.sample.metadata.ArimaTimeSeriesSampleMetadata;
 import org.espy.lab.generator.GeneratorContext;
 import org.espy.lab.generator.TimeSeriesGenerator;
@@ -22,21 +23,27 @@ public class ArimaGenerator implements TimeSeriesGenerator {
 
     private final int unobservedPartLength;
 
-    public ArimaGenerator(int p, int d, int q, int observedPartLength, int unobservedPartLength) {
+    private final ArimaCoefficientsGenerator coefficientsGenerator;
+
+    public ArimaGenerator(int p, int d, int q,
+                          int observedPartLength, int unobservedPartLength,
+                          ArimaCoefficientsGenerator coefficientsGenerator) {
         // TODO: 4/2/2017 add preconditions
         this.p = p;
         this.d = d;
         this.q = q;
         this.observedPartLength = observedPartLength;
         this.unobservedPartLength = unobservedPartLength;
+        this.coefficientsGenerator = coefficientsGenerator;
     }
 
     @Override public TimeSeriesSample generate(GeneratorContext generatorContext) {
         Random random = generatorContext.getRandom();
         DefaultArimaProcess process = new DefaultArimaProcess();
-        process.setArCoefficients(generateCoefficients(p, random));
+        double[] arCoefficients = coefficientsGenerator.generateArCoefficients(p, random);
+        process.setArCoefficients(arCoefficients);
         process.setIntegrationOrder(d);
-        process.setMaCoefficients(generateCoefficients(q, random));
+        process.setMaCoefficients(coefficientsGenerator.generateMaCoefficients(q, random, arCoefficients));
         ArimaProcessRealization realization = new DefaultArimaProcessRealization(process, random);
         ArimaTimeSeriesSampleMetadata metadata = new ArimaTimeSeriesSampleMetadata(
                 realization.getArCoefficients(),
@@ -50,13 +57,5 @@ public class ArimaGenerator implements TimeSeriesGenerator {
                 realization.next(observedPartLength),
                 realization.next(unobservedPartLength)
         );
-    }
-
-    private double[] generateCoefficients(int count, Random random) {
-        double[] coefficients = new double[count];
-        for (int i = 0; i < count; i++) {
-            coefficients[i] = Math.round(random.nextDouble() * 1_000) / 1_000.0;
-        }
-        return coefficients;
     }
 }

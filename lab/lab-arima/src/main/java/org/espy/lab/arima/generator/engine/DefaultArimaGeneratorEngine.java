@@ -1,8 +1,9 @@
-package org.espy.lab.arima.generator;
+package org.espy.lab.arima.generator.engine;
 
 import org.espy.arima.ArimaProcessRealization;
 import org.espy.arima.DefaultArimaProcess;
 import org.espy.arima.DefaultArimaProcessRealization;
+import org.espy.lab.arima.generator.ArimaGenerator;
 
 import java.util.Random;
 

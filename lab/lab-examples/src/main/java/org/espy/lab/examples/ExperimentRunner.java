@@ -18,9 +18,10 @@ public class ExperimentRunner {
     public static void main(String[] args) throws FileNotFoundException {
 
         int i = 1;
+        String rootDir = "lab/lab-examples/src/main/resources";
 
         Experiment experiment = new Experiment<>(
-                "lab/lab-examples/src/main/resources/test-suites/suite_" + i + ".txt",
+                rootDir + "/test-suites/suite_" + i + ".txt",
                 new FarmTimeSeriesProcessorReportAggregator(),
                 Arrays.asList(
                         new ArimaTimeSeriesProcessor<>(
@@ -38,10 +39,6 @@ public class ExperimentRunner {
 
         ExperimentResult result = experiment.run();
 
-        WritableUtils.save(
-                result.getShortReport(),
-                "lab/lab-examples/src/main/resources/reports",
-                "report_" + i + ".txt"
-        );
+        WritableUtils.save(result.getShortReport(), rootDir + "/reports", "report_" + i + ".txt");
     }
 }

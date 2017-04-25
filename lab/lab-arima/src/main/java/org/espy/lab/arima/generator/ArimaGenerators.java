@@ -38,6 +38,8 @@ public final class ArimaGenerators {
 
         private ArimaCoefficientsGenerator coefficientsGenerator;
 
+        private ArimaGenerator.ArimaGeneratorEngine generatorEngine;
+
         public List<TimeSeriesGenerator> build() {
             List<TimeSeriesGenerator> generators = new ArrayList<>();
             for (int d = minD; d <= maxD; d++) {
@@ -56,15 +58,24 @@ public final class ArimaGenerators {
             if (coefficientsGenerator == null) {
                 coefficientsGenerator = new DefaultArimaCoefficientsGenerator();
             }
+            if (generatorEngine == null) {
+                generatorEngine = new DefaultArimaGeneratorEngine();
+            }
             return new ArimaGenerator(
                     p, d, q,
                     observedPartLength, unobservedPartLength,
-                    coefficientsGenerator
+                    coefficientsGenerator,
+                    generatorEngine
             );
         }
 
         public Builder setCoefficientsGenerator(ArimaCoefficientsGenerator coefficientsGenerator) {
             this.coefficientsGenerator = coefficientsGenerator;
+            return this;
+        }
+
+        public Builder setGeneratorEngine(ArimaGenerator.ArimaGeneratorEngine generatorEngine) {
+            this.generatorEngine = generatorEngine;
             return this;
         }
     }

@@ -1,8 +1,5 @@
 package org.espy.lab.arima.generator;
 
-import org.espy.arima.ArimaProcessRealization;
-import org.espy.arima.DefaultArimaProcess;
-import org.espy.arima.DefaultArimaProcessRealization;
 import org.espy.lab.arima.generator.coefficient.ArimaCoefficientsGenerator;
 import org.espy.lab.arima.sample.metadata.ArimaTimeSeriesSampleMetadata;
 import org.espy.lab.generator.GeneratorContext;
@@ -25,9 +22,12 @@ public class ArimaGenerator implements TimeSeriesGenerator {
 
     private final ArimaCoefficientsGenerator coefficientsGenerator;
 
+    private final ArimaGeneratorEngine generatorEngine;
+
     public ArimaGenerator(int p, int d, int q,
                           int observedPartLength, int unobservedPartLength,
-                          ArimaCoefficientsGenerator coefficientsGenerator) {
+                          ArimaCoefficientsGenerator coefficientsGenerator,
+                          ArimaGeneratorEngine generatorEngine) {
         // TODO: 4/2/2017 add preconditions
         this.p = p;
         this.d = d;
@@ -35,27 +35,47 @@ public class ArimaGenerator implements TimeSeriesGenerator {
         this.observedPartLength = observedPartLength;
         this.unobservedPartLength = unobservedPartLength;
         this.coefficientsGenerator = coefficientsGenerator;
+        this.generatorEngine = generatorEngine;
     }
 
     @Override public TimeSeriesSample generate(GeneratorContext generatorContext) {
         Random random = generatorContext.getRandom();
-        DefaultArimaProcess process = new DefaultArimaProcess();
         double[] arCoefficients = coefficientsGenerator.generateArCoefficients(p, random);
-        process.setArCoefficients(arCoefficients);
-        process.setIntegrationOrder(d);
-        process.setMaCoefficients(coefficientsGenerator.generateMaCoefficients(q, random, arCoefficients));
-        ArimaProcessRealization realization = new DefaultArimaProcessRealization(process, random);
+        double[] maCoefficients = coefficientsGenerator.generateMaCoefficients(q, random, arCoefficients);
         ArimaTimeSeriesSampleMetadata metadata = new ArimaTimeSeriesSampleMetadata(
-                realization.getArCoefficients(),
+                arCoefficients,
                 d,
-                realization.getMaCoefficients(),
+                maCoefficients,
                 observedPartLength,
                 unobservedPartLength
         );
-        return new TimeSeriesSample(
-                metadata,
-                realization.next(observedPartLength),
-                realization.next(unobservedPartLength)
+        GeneratedParts parts = generatorEngine.generate(
+                arCoefficients,
+                d,
+                maCoefficients,
+                observedPartLength,
+                unobservedPartLength,
+                random
         );
+        return new TimeSeriesSample(metadata, parts.observedPart, parts.unobservedPart);
+    }
+
+    public interface ArimaGeneratorEngine {
+
+        GeneratedParts generate(double[] arCoefficients, int d, double[] maCoefficients,
+                                int observedPartLength, int unobservedPartLength,
+                                Random random);
+    }
+
+    public static final class GeneratedParts {
+
+        public final double[] observedPart;
+
+        public final double[] unobservedPart;
+
+        public GeneratedParts(double[] observedPart, double[] unobservedPart) {
+            this.observedPart = observedPart;
+            this.unobservedPart = unobservedPart;
+        }
     }
 }

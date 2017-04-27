@@ -13,7 +13,7 @@ public final class FarmForecastComparator implements TimeSeriesProcessorReportPr
                                                            double[] observations,
                                                            double[] forecast) {
         double farmValue = ForecastAccuracyRelativeMetric.getValue(observations, forecast);
-        return FarmTimeSeriesProcessorReport.normal(metadata, farmValue);
+        return new FarmTimeSeriesProcessorReport(metadata, farmValue);
     }
 
     @Override public void write(PrintWriter writer) {

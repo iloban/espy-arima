@@ -72,9 +72,12 @@ public class ExperimentResult<R extends TimeSeriesProcessorReport> {
                 if (result.errorReports.containsKey(processor)) {
                     writer.println();
                     writer.println();
+                    writer.println("Errors:");
                     writeReports(writer, result.errorReports.get(processor).iterator());
-                    writer.println();
-                    writer.println();
+                    if (full || i <= size) {
+                        writer.println();
+                        writer.println();
+                    }
                 } else if (full || i <= size) {
                     writer.println();
                     writer.println();

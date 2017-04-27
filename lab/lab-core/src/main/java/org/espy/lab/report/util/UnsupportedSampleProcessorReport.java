@@ -10,8 +10,21 @@ public class UnsupportedSampleProcessorReport implements TimeSeriesProcessorRepo
 
     private final String message;
 
-    public UnsupportedSampleProcessorReport(TimeSeriesProcessor<?> processor, TimeSeriesSample sample) {
-        this.message = processor.getName() + " doesn't support: " + sample.getMetadata();
+    public UnsupportedSampleProcessorReport(TimeSeriesProcessor<?> processor,
+                                            TimeSeriesSample sample) {
+        this.message = processor.getName()
+                + " doesn't support: "
+                + sample.getMetadata();
+    }
+
+    public UnsupportedSampleProcessorReport(TimeSeriesProcessor<?> processor,
+                                            TimeSeriesSample sample,
+                                            Exception exception) {
+        this.message = processor.getName()
+                + " was failed on sample: "
+                + sample.getMetadata()
+                + ", with exception: "
+                + exception.getMessage();
     }
 
     @Override public void write(PrintWriter writer) {

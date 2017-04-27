@@ -1,8 +1,8 @@
 package org.espy.lab.examples;
 
 import org.espy.lab.arima.fitter.IdentityArimaFitter;
-import org.espy.lab.arima.forecast.DefaultMultiStepsArimaForecaster;
-import org.espy.lab.arima.forecast.DefaultOneByOneArimaForecaster;
+import org.espy.lab.arima.forecast.EspyNaiveMultiStepAheadArimaForecaster;
+import org.espy.lab.arima.forecast.EspyNaiveOneStepAheadArimaForecaster;
 import org.espy.lab.arima.processor.ArimaTimeSeriesProcessor;
 import org.espy.lab.experiment.Experiment;
 import org.espy.lab.experiment.ExperimentResult;
@@ -26,12 +26,12 @@ public class ExperimentRunner {
                 Arrays.asList(
                         new ArimaTimeSeriesProcessor<>(
                                 new IdentityArimaFitter(),
-                                new DefaultOneByOneArimaForecaster(),
+                                new EspyNaiveOneStepAheadArimaForecaster(),
                                 new FarmForecastComparator()
                         ),
                         new ArimaTimeSeriesProcessor<>(
                                 new IdentityArimaFitter(),
-                                new DefaultMultiStepsArimaForecaster(),
+                                new EspyNaiveMultiStepAheadArimaForecaster(),
                                 new FarmForecastComparator()
                         )
                 )

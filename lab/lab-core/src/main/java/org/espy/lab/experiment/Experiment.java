@@ -39,11 +39,16 @@ public final class Experiment<R extends TimeSeriesProcessorReport> {
                 .setTimeSeriesProcessorReportAggregator(aggregator);
         for (TimeSeriesProcessor<R> processor : processors) {
             for (TimeSeriesSample sample : suite) {
-                if (processor.support(sample)) {
+                if (!processor.support(sample)) {
+                    TimeSeriesProcessorReport report = new UnsupportedSampleProcessorReport(processor, sample);
+                    builder.putTimeSeriesProcessorErrorReport(processor, report);
+                    continue;
+                }
+                try {
                     R report = processor.process(sample);
                     builder.putTimeSeriesProcessorReport(processor, report);
-                } else {
-                    TimeSeriesProcessorReport report = new UnsupportedSampleProcessorReport(processor, sample);
+                } catch (Exception e) {
+                    TimeSeriesProcessorReport report = new UnsupportedSampleProcessorReport(processor, sample, e);
                     builder.putTimeSeriesProcessorErrorReport(processor, report);
                 }
             }

@@ -6,15 +6,13 @@ import org.espy.arima.DefaultArimaForecaster;
 import java.io.PrintWriter;
 import java.util.Arrays;
 
-public final class DefaultOneByOneArimaForecaster implements ArimaForecaster {
+public final class EspyNaiveOneStepAheadArimaForecaster implements ArimaForecaster {
 
     public double[] forecast(ArimaProcess arimaProcess, double[] observedPart, int forecastLength) {
         double[] forecast = new double[forecastLength];
         for (int i = 0; i < forecastLength; i++) {
             double[] observations = Arrays.copyOf(observedPart, observedPart.length + i);
-            for (int j = 0; j < i; j++) {
-                observations[observedPart.length + j - 1] = forecast[j];
-            }
+            System.arraycopy(forecast, 0, observations, observedPart.length - 1, i);
             DefaultArimaForecaster forecaster = new DefaultArimaForecaster(arimaProcess, observations);
             forecast[i] = forecaster.next();
         }
@@ -22,6 +20,6 @@ public final class DefaultOneByOneArimaForecaster implements ArimaForecaster {
     }
 
     @Override public void write(PrintWriter writer) {
-        writer.print("espy default forecaster, one by one mode");
+        writer.print("espy naive, one-step ahead forecast");
     }
 }

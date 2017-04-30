@@ -121,12 +121,13 @@ public final class Experiment<R extends TimeSeriesProcessorReport> {
                 currentProgress = newProgress;
                 System.out.print(currentProgress + "%");
                 Duration remainder = averageIterationDuration.multipliedBy(totalSamplesCount - currentSamplesCount);
+                long seconds = remainder.getSeconds();
                 if (remainder.compareTo(ChronoUnit.MINUTES.getDuration()) >= 0) {
-                    int minutes = (int) Math.floor(remainder.getSeconds() / 60.0);
+                    int minutes = (int) Math.floor(seconds / 60.0);
                     System.out.print(" ~" + minutes + " minutes");
-                    System.out.println(" " + remainder.getSeconds() % 60 + " seconds");
+                    System.out.println(" " + seconds % 60 + " seconds");
                 } else {
-                    System.out.println(" ~" + remainder.getSeconds() + " seconds");
+                    System.out.println(" ~" + (seconds < 59 ? seconds + 1 : seconds) + " seconds");
                 }
             }
         }

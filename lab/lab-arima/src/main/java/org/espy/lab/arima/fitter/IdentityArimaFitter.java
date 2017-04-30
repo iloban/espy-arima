@@ -8,7 +8,7 @@ import java.io.PrintWriter;
 
 public final class IdentityArimaFitter implements ArimaFitter {
 
-    @Override public ArimaProcess fit(ArimaTimeSeriesSampleMetadata metadata, double[] values) {
+    @Override public ArimaProcess fit(ArimaTimeSeriesSampleMetadata metadata, double[] observations) {
         DefaultArimaProcess arimaProcess = new DefaultArimaProcess();
         arimaProcess.setArCoefficients(metadata.getArCoefficients());
         arimaProcess.setIntegrationOrder(metadata.getIntegrationOrder());
@@ -17,6 +17,6 @@ public final class IdentityArimaFitter implements ArimaFitter {
     }
 
     @Override public void write(PrintWriter writer) {
-        writer.print("identity ARIMA fitter");
+        writer.print("identity");
     }
 }

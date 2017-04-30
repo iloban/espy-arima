@@ -1,5 +1,6 @@
 package org.espy.arima;
 
-interface ArimaFitterStrategy {
+public interface ArimaFitterStrategy {
+
     ArimaProcess fit();
 }

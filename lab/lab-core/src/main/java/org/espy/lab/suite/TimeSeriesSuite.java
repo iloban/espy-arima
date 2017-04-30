@@ -52,4 +52,8 @@ public final class TimeSeriesSuite implements Iterable<TimeSeriesSample>, Writab
             }
         }
     }
+
+    public int size() {
+        return samples.size();
+    }
 }

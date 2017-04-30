@@ -79,5 +79,15 @@ public final class ArimaGenerators {
             this.generatorEngine = generatorEngine;
             return this;
         }
+
+        public Builder setObservedPartLength(int observedPartLength) {
+            this.observedPartLength = observedPartLength;
+            return this;
+        }
+
+        public Builder setUnobservedPartLength(int unobservedPartLength) {
+            this.unobservedPartLength = unobservedPartLength;
+            return this;
+        }
     }
 }

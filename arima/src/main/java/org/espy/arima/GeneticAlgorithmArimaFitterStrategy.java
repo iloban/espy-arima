@@ -35,7 +35,7 @@ public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy 
 
     private int iterationCount;
 
-    GeneticAlgorithmArimaFitterStrategy(double[] observations) {
+    public GeneticAlgorithmArimaFitterStrategy(double[] observations) {
         int minObservationCount = CONTROL_OBSERVATION_COUNT + MIN_LEARNING_OBSERVATION_COUNT;
         if (observations.length < minObservationCount) {
             throw new IllegalArgumentException(

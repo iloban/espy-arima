@@ -1,6 +1,7 @@
 package org.espy.arima;
 
-class MethodOfMomentsArimaFitterStrategy implements ArimaFitterStrategy {
+public class MethodOfMomentsArimaFitterStrategy implements ArimaFitterStrategy {
+
     private static final int MAX_INTEGRATION_ORDER = 10;
     private static final double MA_EPSILON = 1E-3;
     private static final double MA_ITERATION_LIMIT = 100;

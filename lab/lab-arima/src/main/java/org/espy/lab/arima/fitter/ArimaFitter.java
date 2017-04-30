@@ -6,5 +6,5 @@ import org.espy.lab.util.Writable;
 
 public interface ArimaFitter extends Writable {
 
-    ArimaProcess fit(ArimaTimeSeriesSampleMetadata metadata, double[] values);
+    ArimaProcess fit(ArimaTimeSeriesSampleMetadata metadata, double[] observations);
 }

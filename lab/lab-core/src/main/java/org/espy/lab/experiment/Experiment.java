@@ -9,6 +9,9 @@ import org.espy.lab.suite.TimeSeriesSuite;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Scanner;
 
@@ -20,25 +23,35 @@ public final class Experiment<R extends TimeSeriesProcessorReport> {
 
     private final List<TimeSeriesProcessor<R>> processors;
 
+    private final ProgressTracker progressTracker;
+
     public Experiment(String suiteFileName,
                       TimeSeriesProcessorReportAggregator<R> aggregator,
                       List<TimeSeriesProcessor<R>> processors) {
-        suiteFile = new File(suiteFileName);
-        if (!suiteFile.exists()) {
-            throw new IllegalArgumentException("File not found: " + suiteFileName);
-        }
+        this(suiteFileName, aggregator, processors, false);
+    }
+
+    public Experiment(String suiteFileName,
+                      TimeSeriesProcessorReportAggregator<R> aggregator,
+                      List<TimeSeriesProcessor<R>> processors,
+                      boolean trackProgress) {
+        this.suiteFile = new File(suiteFileName);
         this.aggregator = aggregator;
         this.processors = processors;
+        this.progressTracker = trackProgress ? new PercentageAndTimeProgressTracker() : new DummyProgressTracker();
     }
 
     public ExperimentResult<R> run() {
-        init();
-        TimeSeriesSuite suite = readTimeSeriesSuite();
+        for (TimeSeriesProcessor processor : processors) {
+            processor.init();
+        }
+        TimeSeriesSuite suite = readTimeSeriesSuite(suiteFile);
+        progressTracker.reset(suite.size());
         ExperimentResult.Builder<R> builder = ExperimentResult.<R>builder()
                 .setTimeSeriesSuiteFileName(suiteFile.getAbsolutePath())
                 .setTimeSeriesProcessorReportAggregator(aggregator);
-        for (TimeSeriesProcessor<R> processor : processors) {
-            for (TimeSeriesSample sample : suite) {
+        for (TimeSeriesSample sample : suite) {
+            for (TimeSeriesProcessor<R> processor : processors) {
                 if (!processor.support(sample)) {
                     TimeSeriesProcessorReport report = new UnsupportedSampleProcessorReport(processor, sample);
                     builder.putTimeSeriesProcessorErrorReport(processor, report);
@@ -52,21 +65,91 @@ public final class Experiment<R extends TimeSeriesProcessorReport> {
                     builder.putTimeSeriesProcessorErrorReport(processor, report);
                 }
             }
+            progressTracker.onAfterSampleProcessing();
         }
         return builder.build();
     }
 
-    private void init() {
-        for (TimeSeriesProcessor processor : processors) {
-            processor.init();
-        }
-    }
-
-    private TimeSeriesSuite readTimeSeriesSuite() {
+    private static TimeSeriesSuite readTimeSeriesSuite(File suiteFile) {
         try (Scanner scanner = new Scanner(suiteFile)) {
             return TimeSeriesSuite.read(scanner);
         } catch (FileNotFoundException e) {
             throw new IllegalStateException("Can't read a time series suite", e);
+        }
+    }
+
+    private interface ProgressTracker {
+
+        void reset(int totalSamplesCount);
+
+        void onAfterSampleProcessing();
+    }
+
+    private static final class DummyProgressTracker implements ProgressTracker {
+
+        @Override public void reset(int totalSamplesCount) {
+        }
+
+        @Override public void onAfterSampleProcessing() {
+        }
+    }
+
+    private static final class PercentageAndTimeProgressTracker implements ProgressTracker {
+
+        private int totalSamplesCount;
+
+        private int currentSamplesCount;
+
+        private int currentProgress;
+
+        private Instant lastIterationTimestamp;
+
+        private Duration averageIterationDuration;
+
+        @Override public void reset(int totalSamplesCount) {
+            this.totalSamplesCount = totalSamplesCount;
+            this.currentSamplesCount = 0;
+            this.currentProgress = -1;
+            this.lastIterationTimestamp = Instant.now();
+            this.averageIterationDuration = null;
+        }
+
+        @Override public void onAfterSampleProcessing() {
+            updateAverageIterationDuration();
+            int newProgress = calcNewProgress();
+            if (newProgress > currentProgress) {
+                currentProgress = newProgress;
+                System.out.print(currentProgress + "%");
+                Duration remainder = averageIterationDuration.multipliedBy(totalSamplesCount - currentSamplesCount);
+                if (remainder.compareTo(ChronoUnit.MINUTES.getDuration()) >= 0) {
+                    int minutes = (int) Math.floor(remainder.getSeconds() / 60.0);
+                    System.out.print(" ~" + minutes + " minutes");
+                    System.out.println(" " + remainder.getSeconds() % 60 + " seconds");
+                } else {
+                    System.out.println(" ~" + remainder.getSeconds() + " seconds");
+                }
+            }
+        }
+
+        private void updateAverageIterationDuration() {
+            Instant now = Instant.now();
+            Duration currentIterationDuration = Duration.between(lastIterationTimestamp, now);
+            lastIterationTimestamp = now;
+            if (averageIterationDuration == null) {
+                averageIterationDuration = currentIterationDuration;
+            } else {
+                long averageIterationDurationInNanos = Math.round(
+                        (double) (averageIterationDuration.toNanos() * currentSamplesCount
+                                + currentIterationDuration.toNanos())
+                                / (currentSamplesCount + 1)
+                );
+                averageIterationDuration = Duration.ofNanos(averageIterationDurationInNanos);
+            }
+        }
+
+        private int calcNewProgress() {
+            double ratio = (double) ++currentSamplesCount / totalSamplesCount;
+            return (int) Math.min(Math.round(ratio * 100), 100);
         }
     }
 }

@@ -42,29 +42,26 @@ public class ArimaGenerator implements TimeSeriesGenerator {
         Random random = generatorContext.getRandom();
         double[] arCoefficients = coefficientsGenerator.generateArCoefficients(p, random);
         double[] maCoefficients = coefficientsGenerator.generateMaCoefficients(q, random, arCoefficients);
+        double constant = coefficientsGenerator.generateConstant(random);
+        double expectation = coefficientsGenerator.generateShockExpectation(random);
+        double variation = coefficientsGenerator.generateShockVariation(random);
         ArimaTimeSeriesSampleMetadata metadata = new ArimaTimeSeriesSampleMetadata(
                 arCoefficients,
                 d,
                 maCoefficients,
+                constant,
+                expectation,
+                variation,
                 observedPartLength,
                 unobservedPartLength
         );
-        GeneratedParts parts = generatorEngine.generate(
-                arCoefficients,
-                d,
-                maCoefficients,
-                observedPartLength,
-                unobservedPartLength,
-                random
-        );
+        GeneratedParts parts = generatorEngine.generate(metadata, random);
         return new TimeSeriesSample(metadata, parts.observedPart, parts.unobservedPart);
     }
 
     public interface ArimaGeneratorEngine {
 
-        GeneratedParts generate(double[] arCoefficients, int d, double[] maCoefficients,
-                                int observedPartLength, int unobservedPartLength,
-                                Random random);
+        GeneratedParts generate(ArimaTimeSeriesSampleMetadata metadata, Random random);
     }
 
     public static final class GeneratedParts {

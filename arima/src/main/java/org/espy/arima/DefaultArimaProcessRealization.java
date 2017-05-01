@@ -22,8 +22,8 @@ public class DefaultArimaProcessRealization implements ArimaProcessRealization {
         armaFormula = new ArmaFormula(random);
         armaFormula.setArCoefficients(arimaProcess.getArCoefficients());
         armaFormula.setMaCoefficients(arimaProcess.getMaCoefficients());
-        armaFormula.setExpectation(arimaProcess.getExpectation());
-        armaFormula.setStandardDeviation(Math.sqrt(arimaProcess.getVariation()));
+        armaFormula.setExpectation(arimaProcess.getShockExpectation());
+        armaFormula.setStandardDeviation(Math.sqrt(arimaProcess.getShockVariation()));
         armaFormula.setConstant(arimaProcess.getConstant());
     }
 
@@ -38,13 +38,13 @@ public class DefaultArimaProcessRealization implements ArimaProcessRealization {
     }
 
     @Override
-    public double getExpectation() {
-        return arimaProcess.getExpectation();
+    public double getShockExpectation() {
+        return arimaProcess.getShockExpectation();
     }
 
     @Override
-    public double getVariation() {
-        return arimaProcess.getVariation();
+    public double getShockVariation() {
+        return arimaProcess.getShockVariation();
     }
 
     @Override

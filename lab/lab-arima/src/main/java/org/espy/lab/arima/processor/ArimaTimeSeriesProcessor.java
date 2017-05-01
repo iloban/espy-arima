@@ -41,7 +41,7 @@ public final class ArimaTimeSeriesProcessor<R extends TimeSeriesProcessorReport>
         double[] unobservedPart = sample.getUnobservedPart();
         ArimaProcess arimaProcess = fitter.fit(metadata, observedPart);
         double[] forecast = forecaster.forecast(arimaProcess, observedPart, unobservedPart.length);
-        return reportProducer.produce(metadata, unobservedPart, forecast);
+        return reportProducer.produce(metadata, sample, forecast);
     }
 
     @Override public void write(PrintWriter writer) {

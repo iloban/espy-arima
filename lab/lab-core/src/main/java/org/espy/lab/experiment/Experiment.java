@@ -106,12 +106,15 @@ public final class Experiment<R extends TimeSeriesProcessorReport> {
 
         private Duration averageIterationDuration;
 
+        private Long previousRemainerInSeconds;
+
         @Override public void reset(int totalSamplesCount) {
             this.totalSamplesCount = totalSamplesCount;
             this.currentSamplesCount = 0;
             this.currentProgress = -1;
             this.lastIterationTimestamp = Instant.now();
             this.averageIterationDuration = null;
+            this.previousRemainerInSeconds = null;
         }
 
         @Override public void onAfterSampleProcessing() {
@@ -119,15 +122,18 @@ public final class Experiment<R extends TimeSeriesProcessorReport> {
             int newProgress = calcNewProgress();
             if (newProgress > currentProgress) {
                 currentProgress = newProgress;
-                System.out.print(currentProgress + "%");
                 Duration remainder = averageIterationDuration.multipliedBy(totalSamplesCount - currentSamplesCount);
                 long seconds = remainder.getSeconds();
-                if (remainder.compareTo(ChronoUnit.MINUTES.getDuration()) >= 0) {
-                    int minutes = (int) Math.floor(seconds / 60.0);
-                    System.out.print(" ~" + minutes + " minutes");
-                    System.out.println(" " + seconds % 60 + " seconds");
-                } else {
-                    System.out.println(" ~" + (seconds < 59 ? seconds + 1 : seconds) + " seconds");
+                if (previousRemainerInSeconds == null || previousRemainerInSeconds != seconds) {
+                    previousRemainerInSeconds = seconds;
+                    if (remainder.compareTo(ChronoUnit.MINUTES.getDuration()) >= 0) {
+                        int minutes = (int) Math.floor(seconds / 60.0);
+                        System.out.println(currentProgress + "%\t| ~" + minutes + " minutes " + seconds % 60 + " seconds");
+                    } else {
+                        System.out.println(currentProgress + "%\t| ~" + (seconds < 59 ? seconds + 1 : seconds) + " seconds");
+                    }
+                } else if (currentProgress == 100) {
+                    System.out.println("100%");
                 }
             }
         }

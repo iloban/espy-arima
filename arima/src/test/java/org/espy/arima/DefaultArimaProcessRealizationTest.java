@@ -23,12 +23,12 @@ public class DefaultArimaProcessRealizationTest {
         arimaProcess.setArCoefficients(arCoefficients);
         arimaProcess.setMaCoefficients(maCoefficients);
         arimaProcess.setIntegrationOrder(integrationOrder);
-        arimaProcess.setVariation(variation);
+        arimaProcess.setShockVariation(variation);
         ArimaProcessRealization arimaProcessRealization = new DefaultArimaProcessRealization(arimaProcess);
 
         assertEquals(integrationOrder, arimaProcessRealization.getIntegrationOrder());
-        assertEquals(0, arimaProcessRealization.getExpectation(), EQUALITY_EPSILON);
-        assertEquals(variation, arimaProcessRealization.getVariation(), EQUALITY_EPSILON);
+        assertEquals(0, arimaProcessRealization.getShockExpectation(), EQUALITY_EPSILON);
+        assertEquals(variation, arimaProcessRealization.getShockVariation(), EQUALITY_EPSILON);
         assertEquals(0, arimaProcessRealization.getConstant(), EQUALITY_EPSILON);
         assertArrayEquals(arCoefficients, arimaProcessRealization.getArCoefficients(), EQUALITY_EPSILON);
         assertArrayEquals(maCoefficients, arimaProcessRealization.getMaCoefficients(), EQUALITY_EPSILON);

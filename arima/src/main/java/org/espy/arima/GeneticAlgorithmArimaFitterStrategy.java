@@ -321,7 +321,7 @@ public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy 
                     DoubleUtils.getMean(arimaProcess1.getArCoefficients(), arimaProcess2.getArCoefficients()));
             arimaProcess.setMaCoefficients(
                     DoubleUtils.getMean(arimaProcess1.getMaCoefficients(), arimaProcess2.getMaCoefficients()));
-            arimaProcess.setVariation(DoubleUtils.getMean(arimaProcess1.getVariation(), arimaProcess2.getVariation()));
+            arimaProcess.setShockVariation(DoubleUtils.getMean(arimaProcess1.getShockVariation(), arimaProcess2.getShockVariation()));
             arimaProcess.setConstant(DoubleUtils.getMean(arimaProcess1.getConstant(), arimaProcess2.getConstant()));
             return new Individual(arimaProcess);
         }
@@ -341,7 +341,7 @@ public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy 
             newArimaProcess.setIntegrationOrder(oldArimaProcess.getIntegrationOrder());
             newArimaProcess.setArCoefficients(mutateWeakly(oldArimaProcess.getArCoefficients()));
             newArimaProcess.setMaCoefficients(mutateWeakly(oldArimaProcess.getMaCoefficients()));
-            newArimaProcess.setVariation(oldArimaProcess.getVariation());
+            newArimaProcess.setShockVariation(oldArimaProcess.getShockVariation());
             newArimaProcess.setConstant(mutateWeakly(oldArimaProcess.getConstant()));
             return new Individual(newArimaProcess);
         }
@@ -368,7 +368,7 @@ public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy 
             newArimaProcess.setIntegrationOrder(oldArimaProcess.getIntegrationOrder());
             newArimaProcess.setArCoefficients(mutateStrongly(oldArimaProcess.getArCoefficients()));
             newArimaProcess.setMaCoefficients(mutateStrongly(oldArimaProcess.getMaCoefficients()));
-            newArimaProcess.setVariation(oldArimaProcess.getVariation());
+            newArimaProcess.setShockVariation(oldArimaProcess.getShockVariation());
             newArimaProcess.setConstant(mutateStrongly(oldArimaProcess.getConstant()));
             return new Individual(newArimaProcess);
         }

@@ -15,7 +15,7 @@ public class ArimaFitterTest {
             arimaProcess.setMaCoefficients(generateCoefficients(random));
             arimaProcess.setIntegrationOrder(random.nextInt(4));
             arimaProcess.setConstant(random.nextGaussian());
-            arimaProcess.setVariation(Math.abs(random.nextGaussian()));
+            arimaProcess.setShockVariation(Math.abs(random.nextGaussian()));
             ArimaProcessRealization arimaProcessRealization = new DefaultArimaProcessRealization(arimaProcess);
             double[] observations = arimaProcessRealization.next(50);
             ArimaProcess fittedArimaProcess =
@@ -42,7 +42,7 @@ public class ArimaFitterTest {
         arimaProcess.setMaCoefficients(0.11244125320455554, -0.5199182662567919);
         arimaProcess.setIntegrationOrder(1);
         arimaProcess.setConstant(0.5964750332303466);
-        arimaProcess.setVariation(0.13859165428388037);
+        arimaProcess.setShockVariation(0.13859165428388037);
         double[] observations =
                 new double[]{ 0.16815883945913634, 0.8391475554258156, 1.6152684083063231, 2.9942671524900986,
                               5.994230142986245, 9.915810117665863, 16.302331778792237, 25.211430050797915,

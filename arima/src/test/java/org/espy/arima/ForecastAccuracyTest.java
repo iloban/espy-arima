@@ -76,7 +76,7 @@ public class ForecastAccuracyTest {
         arimaProcess.setMaCoefficients(generateCoefficients(q));
         arimaProcess.setIntegrationOrder(d);
         arimaProcess.setConstant(2 * random.nextGaussian());
-        arimaProcess.setVariation(Math.abs(random.nextGaussian()));
+        arimaProcess.setShockVariation(Math.abs(random.nextGaussian()));
         return new DefaultArimaProcessRealization(arimaProcess);
     }
 

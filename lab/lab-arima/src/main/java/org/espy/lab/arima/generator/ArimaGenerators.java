@@ -1,7 +1,6 @@
 package org.espy.lab.arima.generator;
 
 import org.espy.lab.arima.generator.coefficient.ArimaCoefficientsGenerator;
-import org.espy.lab.arima.generator.coefficient.BoundedArimaCoefficientsGenerator;
 import org.espy.lab.arima.generator.coefficient.DefaultArimaCoefficientsGenerator;
 import org.espy.lab.arima.generator.engine.DefaultArimaGeneratorEngine;
 import org.espy.lab.generator.TimeSeriesGenerator;
@@ -16,7 +15,7 @@ public final class ArimaGenerators {
     }
 
     public static Builder natural(double minAr, double maxAr, double minMa, double maxMa) {
-        ArimaCoefficientsGenerator coefficientsGenerator = new BoundedArimaCoefficientsGenerator(
+        ArimaCoefficientsGenerator coefficientsGenerator = new DefaultArimaCoefficientsGenerator(
                 minAr,
                 maxAr,
                 minMa,

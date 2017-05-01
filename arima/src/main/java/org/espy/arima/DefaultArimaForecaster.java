@@ -12,12 +12,12 @@ public class DefaultArimaForecaster implements ArimaForecaster {
         differentiatedObservationWindow =
                 new DifferentiatedObservationWindow(arimaProcess.getIntegrationOrder(), observations);
 
-        observationErrorWindow = new ObservationErrorWindow(arimaProcess.getMaOrder(), arimaProcess.getExpectation());
+        observationErrorWindow = new ObservationErrorWindow(arimaProcess.getMaOrder(), arimaProcess.getShockExpectation());
 
         armaFormula = new ArmaFormula(ThreadLocalRandom.current());
         armaFormula.setArCoefficients(arimaProcess.getArCoefficients());
         armaFormula.setMaCoefficients(arimaProcess.getMaCoefficients());
-        armaFormula.setExpectation(arimaProcess.getExpectation());
+        armaFormula.setExpectation(arimaProcess.getShockExpectation());
         armaFormula.setStandardDeviation(0);
         armaFormula.setConstant(arimaProcess.getConstant());
 

@@ -49,7 +49,7 @@ public class MethodOfMomentsArimaFitterStrategy implements ArimaFitterStrategy {
         DefaultArimaProcess arimaProcess = new DefaultArimaProcess();
         arimaProcess.setIntegrationOrder(integrationOrder);
         arimaProcess.setConstant(constant);
-        arimaProcess.setVariation(variation);
+        arimaProcess.setShockVariation(variation);
         arimaProcess.setArCoefficients(arCoefficients);
         arimaProcess.setMaCoefficients(maCoefficients);
         return arimaProcess;

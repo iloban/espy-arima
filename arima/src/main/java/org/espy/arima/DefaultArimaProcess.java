@@ -8,8 +8,8 @@ public class DefaultArimaProcess implements ArimaProcess {
     private double[] arCoefficients = EMPTY_DOUBLE_ARRAY;
     private double[] maCoefficients = EMPTY_DOUBLE_ARRAY;
     private int integrationOrder;
-    private double expectation;
-    private double variation = 1;
+    private double shockExpectation;
+    private double shockVariation = 1;
     private double constant;
 
     @Override
@@ -50,21 +50,21 @@ public class DefaultArimaProcess implements ArimaProcess {
     }
 
     @Override
-    public double getExpectation() {
-        return expectation;
+    public double getShockExpectation() {
+        return shockExpectation;
     }
 
-    public void setExpectation(double expectation) {
-        this.expectation = expectation;
+    public void setShockExpectation(double shockExpectation) {
+        this.shockExpectation = shockExpectation;
     }
 
     @Override
-    public double getVariation() {
-        return variation;
+    public double getShockVariation() {
+        return shockVariation;
     }
 
-    public void setVariation(double variation) {
-        this.variation = variation;
+    public void setShockVariation(double shockVariation) {
+        this.shockVariation = shockVariation;
     }
 
     @Override
@@ -82,8 +82,8 @@ public class DefaultArimaProcess implements ArimaProcess {
                 "arCoefficients=" + Arrays.toString(arCoefficients) +
                 ", maCoefficients=" + Arrays.toString(maCoefficients) +
                 ", integrationOrder=" + integrationOrder +
-                ", expectation=" + expectation +
-                ", variation=" + variation +
+                ", shockExpectation=" + shockExpectation +
+                ", shockVariation=" + shockVariation +
                 ", constant=" + constant +
                 '}';
     }

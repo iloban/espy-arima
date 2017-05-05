@@ -15,11 +15,14 @@ public final class ArimaGenerators {
     }
 
     public static Builder natural(double minAr, double maxAr, double minMa, double maxMa) {
+        return natural(minAr, maxAr, minMa, maxMa, 1, 1);
+    }
+
+    public static Builder natural(double minAr, double maxAr, double minMa, double maxMa, double minShockVariation, double maxShockVariation) {
         ArimaCoefficientsGenerator coefficientsGenerator = new DefaultArimaCoefficientsGenerator(
-                minAr,
-                maxAr,
-                minMa,
-                maxMa
+                minAr, maxAr,
+                minMa, maxMa,
+                minShockVariation, maxShockVariation
         );
         return new Builder().setCoefficientsGenerator(coefficientsGenerator);
     }

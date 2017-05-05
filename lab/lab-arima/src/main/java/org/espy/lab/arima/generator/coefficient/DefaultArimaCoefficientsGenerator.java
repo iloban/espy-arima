@@ -12,15 +12,23 @@ public final class DefaultArimaCoefficientsGenerator implements ArimaCoefficient
 
     private final double maxMa;
 
+    private final double minShockVariation;
+
+    private final double maxShockVariation;
+
     public DefaultArimaCoefficientsGenerator() {
-        this(0.05, 0.95, 0.01, 0.9);
+        this(0.05, 0.95, 0.01, 0.9, 1, 1);
     }
 
-    public DefaultArimaCoefficientsGenerator(double minAr, double maxAr, double minMa, double maxMa) {
+    public DefaultArimaCoefficientsGenerator(double minAr, double maxAr,
+                                             double minMa, double maxMa,
+                                             double minShockVariation, double maxShockVariation) {
         this.minAr = minAr;
         this.maxAr = maxAr;
         this.minMa = minMa;
         this.maxMa = maxMa;
+        this.minShockVariation = minShockVariation;
+        this.maxShockVariation = maxShockVariation;
     }
 
     @Override public double[] generateArCoefficients(int p, Random random) {
@@ -51,8 +59,11 @@ public final class DefaultArimaCoefficientsGenerator implements ArimaCoefficient
     }
 
     private static double generateCoefficient(Random random, double min, double max) {
-        return (random.nextBoolean() ? 1 : -1)
-                * Math.round(((max - min) * random.nextDouble() + min) * 1_000) / 1_000.0;
+        return (random.nextBoolean() ? 1 : -1) * generateValue(random, min, max);
+    }
+
+    private static double generateValue(Random random, double min, double max) {
+        return Math.round(((max - min) * random.nextDouble() + min) * 1_000) / 1_000.0;
     }
 
     @Override public double[] generateMaCoefficients(int q, Random random, double[] arCoefficients) {
@@ -68,6 +79,6 @@ public final class DefaultArimaCoefficientsGenerator implements ArimaCoefficient
     }
 
     @Override public double generateShockVariation(Random random) {
-        return 1;
+        return generateValue(random, minShockVariation, maxShockVariation);
     }
 }

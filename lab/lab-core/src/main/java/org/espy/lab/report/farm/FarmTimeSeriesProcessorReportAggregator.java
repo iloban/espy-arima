@@ -7,11 +7,11 @@ import org.espy.lab.report.TimeSeriesProcessorReportAggregator;
 import java.io.PrintWriter;
 import java.util.List;
 
-public final class FarmTimeSeriesProcessorReportAggregator implements TimeSeriesProcessorReportAggregator<FarmTimeSeriesProcessorReport> {
+public final class FarmTimeSeriesProcessorReportAggregator
+        implements TimeSeriesProcessorReportAggregator<FarmTimeSeriesProcessorReport> {
 
     @Override public AggregatedTimeSeriesProcessorReport aggregate(List<FarmTimeSeriesProcessorReport> reports) {
         double[] values = reports.stream()
-//                .map(report -> (FarmTimeSeriesProcessorReport) report)
                 .mapToDouble(FarmTimeSeriesProcessorReport::getValue)
                 .toArray();
         double value = ForecastAccuracyRelativeMetric.combine(values);

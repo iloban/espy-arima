@@ -106,7 +106,7 @@ public final class Experiment<R extends TimeSeriesProcessorReport> {
 
         private Duration averageIterationDuration;
 
-        private Long previousRemainerInSeconds;
+        private Long previousRemainderInSeconds;
 
         @Override public void reset(int totalSamplesCount) {
             this.totalSamplesCount = totalSamplesCount;
@@ -114,7 +114,7 @@ public final class Experiment<R extends TimeSeriesProcessorReport> {
             this.currentProgress = -1;
             this.lastIterationTimestamp = Instant.now();
             this.averageIterationDuration = null;
-            this.previousRemainerInSeconds = null;
+            this.previousRemainderInSeconds = null;
         }
 
         @Override public void onAfterSampleProcessing() {
@@ -124,8 +124,8 @@ public final class Experiment<R extends TimeSeriesProcessorReport> {
                 currentProgress = newProgress;
                 Duration remainder = averageIterationDuration.multipliedBy(totalSamplesCount - currentSamplesCount);
                 long seconds = remainder.getSeconds();
-                if (previousRemainerInSeconds == null || previousRemainerInSeconds != seconds) {
-                    previousRemainerInSeconds = seconds;
+                if (previousRemainderInSeconds == null || previousRemainderInSeconds != seconds) {
+                    previousRemainderInSeconds = seconds;
                     if (remainder.compareTo(ChronoUnit.MINUTES.getDuration()) >= 0) {
                         int minutes = (int) Math.floor(seconds / 60.0);
                         System.out.println(currentProgress + "%\t| ~" + minutes + " minutes " + seconds % 60 + " seconds");

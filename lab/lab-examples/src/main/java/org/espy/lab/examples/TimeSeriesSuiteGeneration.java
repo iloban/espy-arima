@@ -18,7 +18,11 @@ public class TimeSeriesSuiteGeneration {
         TimeSeriesSuiteConfiguration configuration = TimeSeriesSuiteConfiguration.builder()
                 .setSeed(i)
                 .setGenerators(ArimaGenerators
-                        .natural(0.5, 1, 0.02, 0.4)
+                        .natural(
+                                0.5, 1,
+                                0.02, 0.4,
+                                0.5, 1.5
+                        )
                         .build()
                 )
                 .setGeneratorUsageCount(1000)

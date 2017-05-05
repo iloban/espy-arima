@@ -9,7 +9,7 @@ public final class WritableUtils {
     private WritableUtils() {
     }
 
-    public static void save(Writable writable, String dir, String fileName) throws FileNotFoundException {
+    public static void saveInFile(Writable writable, String dir, String fileName) throws FileNotFoundException {
         File file = new File(dir);
         if (!file.exists() && !file.mkdirs()) {
             throw new FileNotFoundException("Can't create directories");

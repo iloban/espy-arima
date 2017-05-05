@@ -23,6 +23,10 @@ public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy 
 
     private static final double SIGNIFICANT_IMPROVEMENT_THRESHOLD = 1E-3;
 
+    private final Random random;
+
+    private final InnerArimaForecaster innerForecaster;
+
     private final double[] learningObservations;
 
     private final double[] controlObservations;
@@ -36,6 +40,10 @@ public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy 
     private int iterationCount;
 
     public GeneticAlgorithmArimaFitterStrategy(double[] observations) {
+        this(observations, new Random(), new DefaultInnerArimaForecaster());
+    }
+
+    public GeneticAlgorithmArimaFitterStrategy(double[] observations, Random random, InnerArimaForecaster innerForecaster) {
         int minObservationCount = CONTROL_OBSERVATION_COUNT + MIN_LEARNING_OBSERVATION_COUNT;
         if (observations.length < minObservationCount) {
             throw new IllegalArgumentException(
@@ -46,6 +54,8 @@ public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy 
                 observations.length - CONTROL_OBSERVATION_COUNT
         );
         this.controlObservations = DoubleUtils.copyEnd(observations, CONTROL_OBSERVATION_COUNT);
+        this.random = random;
+        this.innerForecaster = innerForecaster;
     }
 
     @Override
@@ -68,8 +78,8 @@ public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy 
                         continue;
                     }
                     ArimaProcess arimaProcess = ArimaFitter.fit(learningObservations, p, d, q);
-                    Individual individual = new Individual(arimaProcess);
-                    PopulationClass populationClass = new PopulationClass(individual);
+                    Individual individual = new Individual(innerForecaster, arimaProcess);
+                    PopulationClass populationClass = new PopulationClass(individual, random, innerForecaster);
                     population.addPopulationClass(populationClass);
                 }
             }
@@ -104,6 +114,11 @@ public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy 
 
     private ArimaProcess getBestArimaProcess() {
         return bestIndividual.getArimaProcess();
+    }
+
+    public interface InnerArimaForecaster {
+
+        double[] forecast(ArimaProcess arimaProcess, double[] observedPart, int forecastLength);
     }
 
     private static final class Population {
@@ -147,18 +162,26 @@ public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy 
         private static final int MEDIUM_GENERATION_SIZE = 10;
         private static final int SMALL_GENERATION_SIZE = 5;
 
-        private final Random random = new Random();
+        private static final double[] DELTAS = new double[]{0, 0.01, 0.05, 0.1};
+        private static final double[] FACTORS = new double[]{0.25, 0.5, 1, 2, 4};
+
+        private final Random random;
+
+        private final InnerArimaForecaster innerForecaster;
+
         private final List<Individual> individuals = new ArrayList<Individual>();
 
         private double estimate;
 
-        public PopulationClass(Individual individual) {
+        public PopulationClass(Individual individual, Random random, InnerArimaForecaster innerForecaster) {
+            this.random = random;
+            this.innerForecaster = innerForecaster;
             addIndividual(individual);
             for (int i = 1; i < BIG_GENERATION_SIZE / 2; i++) {
-                addIndividual(Mutations.mutateWeakly(individual));
+                addIndividual(mutateWeakly(individual));
             }
             for (int i = BIG_GENERATION_SIZE / 2; i < BIG_GENERATION_SIZE; i++) {
-                addIndividual(Mutations.mutateStrongly(individual));
+                addIndividual(mutateStrongly(individual));
             }
         }
 
@@ -211,24 +234,37 @@ public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy 
                     size = individuals.size() - 1;
                 }
                 for (int i = 0; i < size; i++) {
-                    nextGeneration
-                            .add(Selectors.performSelection(individuals.get(level), individuals.get(level + i + 1)));
+                    nextGeneration.add(performSelection(individuals.get(level), individuals.get(level + i + 1)));
                 }
                 level++;
                 oldLimit = newLimit;
             } while (newLimit > 0);
         }
 
+        private Individual performSelection(Individual individual1, Individual individual2) {
+            ArimaProcess arimaProcess1 = individual1.getArimaProcess();
+            ArimaProcess arimaProcess2 = individual2.getArimaProcess();
+            DefaultArimaProcess arimaProcess = new DefaultArimaProcess();
+            arimaProcess.setIntegrationOrder(arimaProcess1.getIntegrationOrder());
+            arimaProcess.setArCoefficients(
+                    DoubleUtils.getMean(arimaProcess1.getArCoefficients(), arimaProcess2.getArCoefficients()));
+            arimaProcess.setMaCoefficients(
+                    DoubleUtils.getMean(arimaProcess1.getMaCoefficients(), arimaProcess2.getMaCoefficients()));
+            arimaProcess.setShockVariation(DoubleUtils.getMean(arimaProcess1.getShockVariation(), arimaProcess2.getShockVariation()));
+            arimaProcess.setConstant(DoubleUtils.getMean(arimaProcess1.getConstant(), arimaProcess2.getConstant()));
+            return new Individual(innerForecaster, arimaProcess);
+        }
+
         private void performWeakMutation(List<Individual> nextGeneration, int limit) {
             int size = limit > individuals.size() ? individuals.size() : limit;
             for (int i = 0; i < size; i++) {
-                nextGeneration.add(Mutations.mutateWeakly(individuals.get(i)));
+                nextGeneration.add(mutateWeakly(individuals.get(i)));
             }
         }
 
         private void performStrongMutation(List<Individual> nextGeneration, int limit) {
             for (int i = nextGeneration.size(); i < limit; i++) {
-                nextGeneration.add(Mutations.mutateStrongly(getRandomIndividual()));
+                nextGeneration.add(mutateStrongly(getRandomIndividual()));
             }
         }
 
@@ -243,14 +279,73 @@ public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy 
         public void produceSmallGeneration() {
             produceGeneration(SMALL_GENERATION_SIZE, 1, 2);
         }
+
+        public Individual mutateWeakly(Individual individual) {
+            ArimaProcess oldArimaProcess = individual.getArimaProcess();
+            DefaultArimaProcess newArimaProcess = new DefaultArimaProcess();
+            newArimaProcess.setIntegrationOrder(oldArimaProcess.getIntegrationOrder());
+            newArimaProcess.setArCoefficients(mutateWeakly(oldArimaProcess.getArCoefficients()));
+            newArimaProcess.setMaCoefficients(mutateWeakly(oldArimaProcess.getMaCoefficients()));
+            newArimaProcess.setShockVariation(oldArimaProcess.getShockVariation());
+            newArimaProcess.setConstant(mutateWeakly(oldArimaProcess.getConstant()));
+            return new Individual(innerForecaster, newArimaProcess);
+        }
+
+        private double[] mutateWeakly(double[] array) {
+            double[] result = new double[array.length];
+            for (int i = 0; i < array.length; i++) {
+                result[i] = mutateWeakly(array[i]);
+            }
+            return result;
+        }
+
+        private double mutateWeakly(double value) {
+            return value + getRandomDelta();
+        }
+
+        private double getRandomDelta() {
+            return DELTAS[random.nextInt(DELTAS.length)];
+        }
+
+        public Individual mutateStrongly(Individual individual) {
+            ArimaProcess oldArimaProcess = individual.getArimaProcess();
+            DefaultArimaProcess newArimaProcess = new DefaultArimaProcess();
+            newArimaProcess.setIntegrationOrder(oldArimaProcess.getIntegrationOrder());
+            newArimaProcess.setArCoefficients(mutateStrongly(oldArimaProcess.getArCoefficients()));
+            newArimaProcess.setMaCoefficients(mutateStrongly(oldArimaProcess.getMaCoefficients()));
+            newArimaProcess.setShockVariation(oldArimaProcess.getShockVariation());
+            newArimaProcess.setConstant(mutateStrongly(oldArimaProcess.getConstant()));
+            return new Individual(innerForecaster, newArimaProcess);
+        }
+
+        private double[] mutateStrongly(double[] array) {
+            double[] result = new double[array.length];
+            for (int i = 0; i < array.length; i++) {
+                result[i] = mutateStrongly(array[i]);
+            }
+            return result;
+        }
+
+        private double mutateStrongly(double value) {
+            double newValue = value * getRandomFactor();
+            return random.nextBoolean() ? newValue : -newValue;
+        }
+
+        private double getRandomFactor() {
+            return FACTORS[random.nextInt(FACTORS.length)];
+        }
     }
 
     private static final class Individual implements Comparable<Individual> {
+
+        private final InnerArimaForecaster innerForecaster;
+
         private final ArimaProcess arimaProcess;
 
         private double estimation;
 
-        public Individual(ArimaProcess arimaProcess) {
+        public Individual(InnerArimaForecaster innerForecaster, ArimaProcess arimaProcess) {
+            this.innerForecaster = innerForecaster;
             this.arimaProcess = arimaProcess;
         }
 
@@ -293,8 +388,7 @@ public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy 
         }
 
         public void estimate(double[] learningObservations, double[] controlObservations) {
-            ArimaForecaster forecaster = new DefaultArimaForecaster(arimaProcess, learningObservations);
-            double[] forecast = forecaster.next(CONTROL_OBSERVATION_COUNT);
+            double[] forecast = innerForecaster.forecast(arimaProcess, learningObservations, CONTROL_OBSERVATION_COUNT);
             estimation = ForecastAccuracyRelativeMetric.getValue(controlObservations, forecast);
         }
 
@@ -308,86 +402,14 @@ public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy 
         }
     }
 
-    private static final class Selectors {
-        private Selectors() {
+    public static final class DefaultInnerArimaForecaster implements InnerArimaForecaster {
+
+        @Override public double[] forecast(ArimaProcess arimaProcess, double[] observations, int forecastLength) {
+            return new DefaultArimaForecaster(arimaProcess, observations).next(forecastLength);
         }
 
-        public static Individual performSelection(Individual individual1, Individual individual2) {
-            ArimaProcess arimaProcess1 = individual1.getArimaProcess();
-            ArimaProcess arimaProcess2 = individual2.getArimaProcess();
-            DefaultArimaProcess arimaProcess = new DefaultArimaProcess();
-            arimaProcess.setIntegrationOrder(arimaProcess1.getIntegrationOrder());
-            arimaProcess.setArCoefficients(
-                    DoubleUtils.getMean(arimaProcess1.getArCoefficients(), arimaProcess2.getArCoefficients()));
-            arimaProcess.setMaCoefficients(
-                    DoubleUtils.getMean(arimaProcess1.getMaCoefficients(), arimaProcess2.getMaCoefficients()));
-            arimaProcess.setShockVariation(DoubleUtils.getMean(arimaProcess1.getShockVariation(), arimaProcess2.getShockVariation()));
-            arimaProcess.setConstant(DoubleUtils.getMean(arimaProcess1.getConstant(), arimaProcess2.getConstant()));
-            return new Individual(arimaProcess);
-        }
-    }
-
-    private static final class Mutations {
-        private static final Random RANDOM = new Random();
-        private static final double[] DELTAS = new double[]{ 0, 0.01, 0.05, 0.1 };
-        private static final double[] FACTORS = new double[]{ 0.25, 0.5, 1, 2, 4 };
-
-        private Mutations() {
-        }
-
-        public static Individual mutateWeakly(Individual individual) {
-            ArimaProcess oldArimaProcess = individual.getArimaProcess();
-            DefaultArimaProcess newArimaProcess = new DefaultArimaProcess();
-            newArimaProcess.setIntegrationOrder(oldArimaProcess.getIntegrationOrder());
-            newArimaProcess.setArCoefficients(mutateWeakly(oldArimaProcess.getArCoefficients()));
-            newArimaProcess.setMaCoefficients(mutateWeakly(oldArimaProcess.getMaCoefficients()));
-            newArimaProcess.setShockVariation(oldArimaProcess.getShockVariation());
-            newArimaProcess.setConstant(mutateWeakly(oldArimaProcess.getConstant()));
-            return new Individual(newArimaProcess);
-        }
-
-        private static double[] mutateWeakly(double[] array) {
-            double[] result = new double[array.length];
-            for (int i = 0; i < array.length; i++) {
-                result[i] = mutateWeakly(array[i]);
-            }
-            return result;
-        }
-
-        private static double mutateWeakly(double value) {
-            return value + getRandomDelta();
-        }
-
-        private static double getRandomDelta() {
-            return DELTAS[RANDOM.nextInt(DELTAS.length)];
-        }
-
-        public static Individual mutateStrongly(Individual individual) {
-            ArimaProcess oldArimaProcess = individual.getArimaProcess();
-            DefaultArimaProcess newArimaProcess = new DefaultArimaProcess();
-            newArimaProcess.setIntegrationOrder(oldArimaProcess.getIntegrationOrder());
-            newArimaProcess.setArCoefficients(mutateStrongly(oldArimaProcess.getArCoefficients()));
-            newArimaProcess.setMaCoefficients(mutateStrongly(oldArimaProcess.getMaCoefficients()));
-            newArimaProcess.setShockVariation(oldArimaProcess.getShockVariation());
-            newArimaProcess.setConstant(mutateStrongly(oldArimaProcess.getConstant()));
-            return new Individual(newArimaProcess);
-        }
-
-        private static double[] mutateStrongly(double[] array) {
-            double[] result = new double[array.length];
-            for (int i = 0; i < array.length; i++) {
-                result[i] = mutateStrongly(array[i]);
-            }
-            return result;
-        }
-
-        private static double mutateStrongly(double value) {
-            double newValue = value * getRandomFactor();
-            return RANDOM.nextBoolean() ? newValue : -newValue;
-        }
-
-        private static double getRandomFactor() {
-            return FACTORS[RANDOM.nextInt(FACTORS.length)];
+        @Override public String toString() {
+            return "default";
         }
     }
 }

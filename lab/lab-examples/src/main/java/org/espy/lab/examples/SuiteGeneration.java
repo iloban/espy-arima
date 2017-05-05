@@ -8,15 +8,16 @@ import org.espy.lab.util.WritableUtils;
 
 import java.io.FileNotFoundException;
 
-public class TimeSeriesSuiteGeneration {
+public class SuiteGeneration {
 
     public static void main(String[] args) throws FileNotFoundException {
 
-        int i = 2;
+        int index = 1;
+        int seed = 1;
         String rootDir = "lab/lab-examples/src/main/resources";
 
         TimeSeriesSuiteConfiguration configuration = TimeSeriesSuiteConfiguration.builder()
-                .setSeed(i)
+                .setSeed(seed)
                 .setGenerators(ArimaGenerators
                         .natural(
                                 0.5, 1,
@@ -30,6 +31,6 @@ public class TimeSeriesSuiteGeneration {
 
         TimeSeriesSuite suite = TimeSeriesSuiteFactory.createTimeSeriesSuite(configuration);
 
-        WritableUtils.save(suite, rootDir + "/test-suites", "suite_" + i + ".txt");
+        WritableUtils.saveInFile(suite, rootDir + "/test-suites", "suite_" + index + ".txt");
     }
 }

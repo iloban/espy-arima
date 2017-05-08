@@ -7,19 +7,19 @@ import java.util.Random;
 
 public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy {
 
-    private static final int CONTROL_OBSERVATION_COUNT = 5;
+    private static final int CONTROL_OBSERVATIONS_COUNT = 10;
 
-    private static final int MIN_LEARNING_OBSERVATION_COUNT = 5;
+    private static final int MIN_LEARNING_OBSERVATIONS_COUNT = 5;
 
     private static final int MAX_INTEGRATION_ORDER = 2;
 
-    private static final int MAX_AR_ORDER = 2;
+    private static final int MAX_AR_ORDER = 3;
 
-    private static final int MAX_MA_ORDER = 2;
+    private static final int MAX_MA_ORDER = 3;
 
     private static final int ITERATION_LIMIT = 100;
 
-    private static final int NON_SIGNIFICANT_IMPROVEMENT_LIMIT = 3;
+    private static final int NON_SIGNIFICANT_IMPROVEMENT_LIMIT = 5;
 
     private static final double SIGNIFICANT_IMPROVEMENT_THRESHOLD = 1E-3;
 
@@ -44,32 +44,32 @@ public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy 
     }
 
     public GeneticAlgorithmArimaFitterStrategy(double[] observations, Random random, InnerArimaForecaster innerForecaster) {
-        int minObservationCount = CONTROL_OBSERVATION_COUNT + MIN_LEARNING_OBSERVATION_COUNT;
+        int minObservationCount = CONTROL_OBSERVATIONS_COUNT + MIN_LEARNING_OBSERVATIONS_COUNT;
         if (observations.length < minObservationCount) {
             throw new IllegalArgumentException(
                     "Observations count is too small (at least need " + minObservationCount + " observations)");
         }
         this.learningObservations = DoubleUtils.copyBegin(
                 observations,
-                observations.length - CONTROL_OBSERVATION_COUNT
+                observations.length - CONTROL_OBSERVATIONS_COUNT
         );
-        this.controlObservations = DoubleUtils.copyEnd(observations, CONTROL_OBSERVATION_COUNT);
+        this.controlObservations = DoubleUtils.copyEnd(observations, CONTROL_OBSERVATIONS_COUNT);
         this.random = random;
         this.innerForecaster = innerForecaster;
     }
 
     @Override
     public ArimaProcess fit() {
-        fetchInitialPopulation();
+        initPopulation();
         estimatePopulation();
-        while (isNotFinishPopulation()) {
-            fetchNextGeneration();
+        while (!isFinishPopulation()) {
+            nextPopulation();
             estimatePopulation();
         }
-        return getBestArimaProcess();
+        return getBestIndividual();
     }
 
-    private void fetchInitialPopulation() {
+    private void initPopulation() {
         population = new Population();
         for (int d = 0; d <= MAX_INTEGRATION_ORDER; d++) {
             for (int p = 0; p <= MAX_AR_ORDER; p++) {
@@ -91,7 +91,7 @@ public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy 
         population.estimate(learningObservations, controlObservations);
     }
 
-    private boolean isNotFinishPopulation() {
+    private boolean isFinishPopulation() {
         Individual individual = population.getBestIndividual();
         double difference = bestIndividual.getDifference(individual);
         bestIndividual = Individual.getBestIndividual(bestIndividual, individual);
@@ -99,20 +99,19 @@ public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy 
             nonSignificantImprovementCount++;
         }
         if (nonSignificantImprovementCount >= NON_SIGNIFICANT_IMPROVEMENT_LIMIT) {
-            return false;
+            return true;
         }
-        //noinspection RedundantIfStatement
         if (++iterationCount >= ITERATION_LIMIT) {
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 
-    private void fetchNextGeneration() {
-        population.produceNextGeneration();
+    private void nextPopulation() {
+        population.nextGeneration();
     }
 
-    private ArimaProcess getBestArimaProcess() {
+    private ArimaProcess getBestIndividual() {
         return bestIndividual.getArimaProcess();
     }
 
@@ -143,7 +142,7 @@ public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy 
             Collections.sort(populationClasses);
         }
 
-        public void produceNextGeneration() {
+        public void nextGeneration() {
             int groupSize = populationClasses.size() / 3;
             for (int i = 0; i < groupSize; i++) {
                 populationClasses.get(i).produceBigGeneration();
@@ -388,7 +387,7 @@ public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy 
         }
 
         public void estimate(double[] learningObservations, double[] controlObservations) {
-            double[] forecast = innerForecaster.forecast(arimaProcess, learningObservations, CONTROL_OBSERVATION_COUNT);
+            double[] forecast = innerForecaster.forecast(arimaProcess, learningObservations, CONTROL_OBSERVATIONS_COUNT);
             estimation = ForecastAccuracyRelativeMetric.getValue(controlObservations, forecast);
         }
 

@@ -32,7 +32,7 @@ public class ExperimentRunner {
                                 new FarmForecastComparator()
                         ),
                         new ArimaTimeSeriesProcessor<>(
-                                new GeneticAlgorithmArimaFitter(new Random(seed)),
+                                new GeneticAlgorithmArimaFitter(() -> new Random(seed)),
                                 new EspyNaiveMultiStepAheadArimaForecaster(),
                                 new FarmForecastComparator()
                         )

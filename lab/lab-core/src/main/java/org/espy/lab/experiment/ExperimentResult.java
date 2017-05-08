@@ -130,13 +130,13 @@ public class ExperimentResult<R extends TimeSeriesProcessorReport> {
             return this;
         }
 
-        public Builder<R> putTimeSeriesProcessorReport(TimeSeriesProcessor<R> processor, R report) {
+        public synchronized Builder<R> putTimeSeriesProcessorReport(TimeSeriesProcessor<R> processor, R report) {
             List<R> reportsList = reports.computeIfAbsent(processor, key -> new ArrayList<>());
             reportsList.add(report);
             return this;
         }
 
-        public Builder<R> putTimeSeriesProcessorErrorReport(TimeSeriesProcessor<R> processor, TimeSeriesProcessorReport errorReport) {
+        public synchronized Builder<R> putTimeSeriesProcessorErrorReport(TimeSeriesProcessor<R> processor, TimeSeriesProcessorReport errorReport) {
             List<TimeSeriesProcessorReport> reportsList = errorReports.computeIfAbsent(processor, key -> new ArrayList<>());
             reportsList.add(errorReport);
             return this;

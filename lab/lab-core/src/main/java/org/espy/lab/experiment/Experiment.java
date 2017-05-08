@@ -12,8 +12,9 @@ import java.io.FileNotFoundException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public final class Experiment<R extends TimeSeriesProcessorReport> {
 
@@ -24,6 +25,8 @@ public final class Experiment<R extends TimeSeriesProcessorReport> {
     private final List<TimeSeriesProcessor<R>> processors;
 
     private final ProgressTracker progressTracker;
+
+    private final ExecutorService executorService;
 
     public Experiment(String suiteFileName,
                       TimeSeriesProcessorReportAggregator<R> aggregator,
@@ -38,7 +41,22 @@ public final class Experiment<R extends TimeSeriesProcessorReport> {
         this.suiteFile = new File(suiteFileName);
         this.aggregator = aggregator;
         this.processors = processors;
-        this.progressTracker = trackProgress ? new PercentageAndTimeProgressTracker() : new DummyProgressTracker();
+        int threadCount = Runtime.getRuntime().availableProcessors();
+        this.progressTracker = trackProgress ? new PercentageAndTimeProgressTracker(threadCount) : new DummyProgressTracker();
+        this.executorService = createDefaultThreadPool(threadCount);
+    }
+
+    private static ExecutorService createDefaultThreadPool(int threadCount) {
+        return Executors.newFixedThreadPool(threadCount, new ThreadFactory() {
+
+            final AtomicInteger index = new AtomicInteger(1);
+
+            @Override public Thread newThread(Runnable r) {
+                Thread thread = new Thread(r, "experiment-executor-" + index.getAndIncrement());
+                thread.setDaemon(true);
+                return thread;
+            }
+        });
     }
 
     public ExperimentResult<R> run() {
@@ -46,10 +64,11 @@ public final class Experiment<R extends TimeSeriesProcessorReport> {
             processor.init();
         }
         TimeSeriesSuite suite = readTimeSeriesSuite(suiteFile);
-        progressTracker.reset(suite.size());
+        progressTracker.reset(suite.size(), processors.size());
         ExperimentResult.Builder<R> builder = ExperimentResult.<R>builder()
                 .setTimeSeriesSuiteFileName(suiteFile.getAbsolutePath())
                 .setTimeSeriesProcessorReportAggregator(aggregator);
+        List<Future<?>> futures = new ArrayList<>();
         for (TimeSeriesSample sample : suite) {
             for (TimeSeriesProcessor<R> processor : processors) {
                 if (!processor.support(sample)) {
@@ -57,15 +76,25 @@ public final class Experiment<R extends TimeSeriesProcessorReport> {
                     builder.putTimeSeriesProcessorErrorReport(processor, report);
                     continue;
                 }
-                try {
-                    R report = processor.process(sample);
-                    builder.putTimeSeriesProcessorReport(processor, report);
-                } catch (Exception e) {
-                    TimeSeriesProcessorReport report = new UnsupportedSampleProcessorReport(processor, sample, e);
-                    builder.putTimeSeriesProcessorErrorReport(processor, report);
-                }
+                futures.add(executorService.submit(() -> {
+                    try {
+                        Long trackId = progressTracker.startSampleProcessing();
+                        R report = processor.process(sample);
+                        progressTracker.finishSampleProcessing(trackId, processor);
+                        builder.putTimeSeriesProcessorReport(processor, report);
+                    } catch (Exception e) {
+                        TimeSeriesProcessorReport report = new UnsupportedSampleProcessorReport(processor, sample, e);
+                        builder.putTimeSeriesProcessorErrorReport(processor, report);
+                    }
+                }));
             }
-            progressTracker.onAfterSampleProcessing();
+        }
+        for (Future<?> future : futures) {
+            try {
+                future.get();
+            } catch (Exception e) {
+                throw new RuntimeException("Can't process sample", e);
+            }
         }
         return builder.build();
     }
@@ -80,83 +109,125 @@ public final class Experiment<R extends TimeSeriesProcessorReport> {
 
     private interface ProgressTracker {
 
-        void reset(int totalSamplesCount);
+        void reset(int totalSamplesCount, int processorsCount);
 
-        void onAfterSampleProcessing();
+        Long startSampleProcessing();
+
+        void finishSampleProcessing(Long trackId, TimeSeriesProcessor<?> processor);
     }
 
     private static final class DummyProgressTracker implements ProgressTracker {
 
-        @Override public void reset(int totalSamplesCount) {
+        @Override public void reset(int totalSamplesCount, int processorsCount) {
         }
 
-        @Override public void onAfterSampleProcessing() {
+        @Override public Long startSampleProcessing() {
+            return null;
+        }
+
+        @Override public void finishSampleProcessing(Long trackId, TimeSeriesProcessor<?> processor) {
         }
     }
 
     private static final class PercentageAndTimeProgressTracker implements ProgressTracker {
 
+        private final int threadCount;
+
+        private final Map<TimeSeriesProcessor<?>, Duration> averageIterationDurations = new HashMap<>();
+
+        private final Map<TimeSeriesProcessor<?>, Integer> processedSamplesCounts = new HashMap<>();
+
+        private final Map<Long, Instant> tracks = new HashMap<>();
+
         private int totalSamplesCount;
 
-        private int currentSamplesCount;
+        private int processorsCount;
 
         private int currentProgress;
 
-        private Instant lastIterationTimestamp;
-
-        private Duration averageIterationDuration;
-
         private Long previousRemainderInSeconds;
 
-        @Override public void reset(int totalSamplesCount) {
+        PercentageAndTimeProgressTracker(int threadCount) {
+            this.threadCount = threadCount;
+        }
+
+        @Override public void reset(int totalSamplesCount, int processorsCount) {
+            this.averageIterationDurations.clear();
+            this.processedSamplesCounts.clear();
             this.totalSamplesCount = totalSamplesCount;
-            this.currentSamplesCount = 0;
+            this.processorsCount = processorsCount;
             this.currentProgress = -1;
-            this.lastIterationTimestamp = Instant.now();
-            this.averageIterationDuration = null;
             this.previousRemainderInSeconds = null;
         }
 
-        @Override public void onAfterSampleProcessing() {
-            updateAverageIterationDuration();
-            int newProgress = calcNewProgress();
-            if (newProgress > currentProgress) {
-                currentProgress = newProgress;
-                Duration remainder = averageIterationDuration.multipliedBy(totalSamplesCount - currentSamplesCount);
-                long seconds = remainder.getSeconds();
-                if (previousRemainderInSeconds == null || previousRemainderInSeconds != seconds) {
-                    previousRemainderInSeconds = seconds;
-                    if (remainder.compareTo(ChronoUnit.MINUTES.getDuration()) >= 0) {
-                        int minutes = (int) Math.floor(seconds / 60.0);
-                        System.out.println(currentProgress + "%\t| ~" + minutes + " minutes " + seconds % 60 + " seconds");
-                    } else {
-                        System.out.println(currentProgress + "%\t| ~" + (seconds < 59 ? seconds + 1 : seconds) + " seconds");
-                    }
-                } else if (currentProgress == 100) {
-                    System.out.println("100%");
-                }
-            }
+        @Override public synchronized Long startSampleProcessing() {
+            long trackId = ThreadLocalRandom.current().nextLong();
+            tracks.put(trackId, Instant.now());
+            return trackId;
         }
 
-        private void updateAverageIterationDuration() {
-            Instant now = Instant.now();
-            Duration currentIterationDuration = Duration.between(lastIterationTimestamp, now);
-            lastIterationTimestamp = now;
+        @Override public synchronized void finishSampleProcessing(Long trackId, TimeSeriesProcessor<?> processor) {
+            Duration currentIterationDuration = Duration.between(tracks.remove(trackId), Instant.now());
+            updateStats(processor, currentIterationDuration);
+            checkProgress();
+        }
+
+        private void updateStats(TimeSeriesProcessor<?> processor, Duration currentIterationDuration) {
+            Duration averageIterationDuration = averageIterationDurations.get(processor);
             if (averageIterationDuration == null) {
-                averageIterationDuration = currentIterationDuration;
+                averageIterationDurations.put(processor, currentIterationDuration);
+                processedSamplesCounts.put(processor, 1);
+                return;
+            }
+            int currentSamplesCount = processedSamplesCounts.get(processor) + 1;
+            processedSamplesCounts.put(processor, currentSamplesCount);
+            long averageIterationDurationInNanos = Math.round(
+                    (double) (averageIterationDuration.toNanos() * (currentSamplesCount - 1)
+                            + currentIterationDuration.toNanos())
+                            / currentSamplesCount
+            );
+            averageIterationDurations.put(processor, Duration.ofNanos(averageIterationDurationInNanos));
+        }
+
+        private void checkProgress() {
+            int newProgress = calcNewProgress();
+            if (newProgress <= currentProgress) {
+                return;
+            }
+            currentProgress = newProgress;
+            if (currentProgress == 100) {
+                System.out.println("100%");
+                return;
+            }
+            Duration remainder = calcRemainderTime();
+            long seconds = remainder.getSeconds();
+            if (previousRemainderInSeconds != null && previousRemainderInSeconds == seconds) {
+                return;
+            }
+            previousRemainderInSeconds = seconds;
+            if (remainder.compareTo(ChronoUnit.MINUTES.getDuration()) >= 0) {
+                int minutes = (int) Math.floor(seconds / 60.0);
+                System.out.println(currentProgress + "%\t| ~" + minutes + " minutes " + seconds % 60 + " seconds");
             } else {
-                long averageIterationDurationInNanos = Math.round(
-                        (double) (averageIterationDuration.toNanos() * currentSamplesCount
-                                + currentIterationDuration.toNanos())
-                                / (currentSamplesCount + 1)
-                );
-                averageIterationDuration = Duration.ofNanos(averageIterationDurationInNanos);
+                System.out.println(currentProgress + "%\t| ~" + (seconds < 59 ? seconds + 1 : seconds) + " seconds");
             }
         }
 
         private int calcNewProgress() {
-            double ratio = (double) ++currentSamplesCount / totalSamplesCount;
+            double samplesCount = processedSamplesCounts.values().stream().reduce(0, (c1, c2) -> c1 + c2);
+            double ratio = samplesCount / totalSamplesCount / processorsCount;
             return (int) Math.min(Math.round(ratio * 100), 100);
+        }
+
+        private Duration calcRemainderTime() {
+            Duration remainder = Duration.ZERO;
+            for (Map.Entry<TimeSeriesProcessor<?>, Duration> entry : averageIterationDurations.entrySet()) {
+                TimeSeriesProcessor<?> processor = entry.getKey();
+                Duration averageIterationDuration = entry.getValue();
+                int processedSamplesCount = processedSamplesCounts.get(processor);
+                remainder = remainder.plus(averageIterationDuration.multipliedBy(totalSamplesCount - processedSamplesCount));
+            }
+            return remainder.dividedBy(threadCount);
         }
     }
 }

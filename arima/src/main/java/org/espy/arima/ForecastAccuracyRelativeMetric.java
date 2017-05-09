@@ -45,7 +45,7 @@ public class ForecastAccuracyRelativeMetric {
         double medianDelta = deltas[forecastLength / 2];
         double meanDelta = DoubleUtils.getMean(deltas);
         double maxDelta = deltas[forecastLength - 1];
-        return (5 * medianDelta + 3 * meanDelta + 1 * maxDelta) / 9;
+        return (3 * medianDelta + 2 * meanDelta + 1 * maxDelta) / 6;
     }
 
     public static double combine(double[] metrics) {
@@ -57,6 +57,6 @@ public class ForecastAccuracyRelativeMetric {
         double mean = DoubleUtils.getMean(metrics);
         double median = metrics[metrics.length / 2];
         double max = metrics[metrics.length - 1];
-        return (5 * median + 3 * mean + 1 * max) / 9;
+        return (3 * median + 2 * mean + 1 * max) / 6;
     }
 }

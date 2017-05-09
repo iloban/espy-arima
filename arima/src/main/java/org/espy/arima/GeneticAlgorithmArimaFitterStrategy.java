@@ -7,7 +7,7 @@ import java.util.Random;
 
 public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy {
 
-    private static final int CONTROL_OBSERVATIONS_COUNT = 10;
+    private static final int DEFAULT_CONTROL_OBSERVATIONS_COUNT = 10;
 
     private static final int MIN_LEARNING_OBSERVATIONS_COUNT = 5;
 
@@ -40,20 +40,21 @@ public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy 
     private int iterationCount;
 
     GeneticAlgorithmArimaFitterStrategy(double[] observations) {
-        this(observations, new Random(), new DefaultInnerArimaForecaster());
+        this(observations, DEFAULT_CONTROL_OBSERVATIONS_COUNT, new Random(), new DefaultInnerArimaForecaster());
     }
 
-    public GeneticAlgorithmArimaFitterStrategy(double[] observations, Random random, InnerArimaForecaster innerForecaster) {
-        int minObservationCount = CONTROL_OBSERVATIONS_COUNT + MIN_LEARNING_OBSERVATIONS_COUNT;
+    public GeneticAlgorithmArimaFitterStrategy(double[] observations, int controlObservationsCount,
+                                               Random random, InnerArimaForecaster innerForecaster) {
+        int minObservationCount = controlObservationsCount + MIN_LEARNING_OBSERVATIONS_COUNT;
         if (observations.length < minObservationCount) {
             throw new IllegalArgumentException(
                     "Observations count is too small (at least need " + minObservationCount + " observations)");
         }
         this.learningObservations = DoubleUtils.copyBegin(
                 observations,
-                observations.length - CONTROL_OBSERVATIONS_COUNT
+                observations.length - controlObservationsCount
         );
-        this.controlObservations = DoubleUtils.copyEnd(observations, CONTROL_OBSERVATIONS_COUNT);
+        this.controlObservations = DoubleUtils.copyEnd(observations, controlObservationsCount);
         this.random = random;
         this.innerForecaster = innerForecaster;
     }
@@ -426,7 +427,7 @@ public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy 
         }
 
         void estimate(double[] learningObservations, double[] controlObservations) {
-            double[] forecast = innerForecaster.forecast(arimaProcess, learningObservations, CONTROL_OBSERVATIONS_COUNT);
+            double[] forecast = innerForecaster.forecast(arimaProcess, learningObservations, controlObservations.length);
             estimation = ForecastAccuracyRelativeMetric.getValue(controlObservations, forecast);
         }
 

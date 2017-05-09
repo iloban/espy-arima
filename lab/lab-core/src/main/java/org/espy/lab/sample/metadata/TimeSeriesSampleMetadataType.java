@@ -10,6 +10,10 @@ public final class TimeSeriesSampleMetadataType<T extends TimeSeriesSampleMetada
     private static Map<String, TimeSeriesSampleMetadataType<? extends TimeSeriesSampleMetadata>> registeredTypes
             = new ConcurrentHashMap<>();
 
+    static {
+        register(UnknownTimeSeriesSampleMetadata.NAME, UnknownTimeSeriesSampleMetadata::read);
+    }
+
     private final String name;
 
     private final Function<Scanner, T> reader;

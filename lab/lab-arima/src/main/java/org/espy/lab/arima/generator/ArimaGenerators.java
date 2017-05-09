@@ -31,13 +31,12 @@ public final class ArimaGenerators {
 
         private int minP = 0;
         private int maxP = 2;
+
         private int minD = 0;
         private int maxD = 2;
+
         private int minQ = 0;
         private int maxQ = 2;
-
-        private int observedPartLength = 40;
-        private int unobservedPartLength = 10;
 
         private ArimaCoefficientsGenerator coefficientsGenerator;
 
@@ -66,7 +65,6 @@ public final class ArimaGenerators {
             }
             return new ArimaGenerator(
                     p, d, q,
-                    observedPartLength, unobservedPartLength,
                     coefficientsGenerator,
                     generatorEngine
             );
@@ -79,16 +77,6 @@ public final class ArimaGenerators {
 
         public Builder setGeneratorEngine(ArimaGenerator.ArimaGeneratorEngine generatorEngine) {
             this.generatorEngine = generatorEngine;
-            return this;
-        }
-
-        public Builder setObservedPartLength(int observedPartLength) {
-            this.observedPartLength = observedPartLength;
-            return this;
-        }
-
-        public Builder setUnobservedPartLength(int unobservedPartLength) {
-            this.unobservedPartLength = unobservedPartLength;
             return this;
         }
     }

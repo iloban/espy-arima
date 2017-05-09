@@ -27,7 +27,8 @@ public final class GeneticAlgorithmArimaFitter implements ArimaFitter {
 
 
     @Override public ArimaProcess fit(ArimaTimeSeriesSampleMetadata metadata, double[] observations) {
-        ArimaFitterStrategy fitter = new GeneticAlgorithmArimaFitterStrategy(observations, randomSupplier.get(), innerForecaster);
+        ArimaFitterStrategy fitter = new GeneticAlgorithmArimaFitterStrategy(observations,
+                metadata.getUnobservedPartLength(), randomSupplier.get(), innerForecaster);
         return fitter.fit();
     }
 

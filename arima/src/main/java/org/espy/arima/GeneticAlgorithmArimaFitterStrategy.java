@@ -39,7 +39,7 @@ public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy 
 
     private int iterationCount;
 
-    public GeneticAlgorithmArimaFitterStrategy(double[] observations) {
+    GeneticAlgorithmArimaFitterStrategy(double[] observations) {
         this(observations, new Random(), new DefaultInnerArimaForecaster());
     }
 
@@ -58,8 +58,7 @@ public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy 
         this.innerForecaster = innerForecaster;
     }
 
-    @Override
-    public ArimaProcess fit() {
+    @Override public ArimaProcess fit() {
         initPopulation();
         estimatePopulation();
         while (!isFinishPopulation()) {
@@ -77,9 +76,10 @@ public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy 
                     if (p == 0 && q == 0) {
                         continue;
                     }
-                    ArimaProcess arimaProcess = ArimaFitter.fit(learningObservations, p, d, q);
+                    MethodOfMomentsArimaFitterStrategy initialFitter = new MethodOfMomentsArimaFitterStrategy(learningObservations, p, d, q);
+                    ArimaProcess arimaProcess = initialFitter.fit();
                     Individual individual = new Individual(innerForecaster, arimaProcess);
-                    PopulationClass populationClass = new PopulationClass(individual, random, innerForecaster);
+                    PopulationClass populationClass = new PopulationClass(individual, Population.BIG_GENERATION, random, innerForecaster);
                     population.addPopulationClass(populationClass);
                 }
             }
@@ -121,13 +121,20 @@ public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy 
     }
 
     private static final class Population {
-        private final List<PopulationClass> populationClasses = new ArrayList<PopulationClass>();
 
-        public void addPopulationClass(PopulationClass populationClass) {
+        static final GenerationSettings BIG_GENERATION = new GenerationSettings(16, 4, 4);
+
+        static final GenerationSettings MEDIUM_GENERATION = new GenerationSettings(8, 2, 2);
+
+        static final GenerationSettings SMALL_GENERATION = new GenerationSettings(4, 1, 1);
+
+        final List<PopulationClass> populationClasses = new ArrayList<PopulationClass>();
+
+        void addPopulationClass(PopulationClass populationClass) {
             populationClasses.add(populationClass);
         }
 
-        public Individual getBestIndividual() {
+        Individual getBestIndividual() {
             Individual result = populationClasses.get(0).getBestIndividual();
             for (int i = 1; i < populationClasses.size(); i++) {
                 result = Individual.getBestIndividual(result, populationClasses.get(i).getBestIndividual());
@@ -135,64 +142,78 @@ public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy 
             return result;
         }
 
-        public void estimate(double[] learningObservations, double[] controlObservations) {
+        void estimate(double[] learningObservations, double[] controlObservations) {
             for (PopulationClass populationClass : populationClasses) {
                 populationClass.estimate(learningObservations, controlObservations);
             }
             Collections.sort(populationClasses);
         }
 
-        public void nextGeneration() {
+        void nextGeneration() {
             int groupSize = populationClasses.size() / 3;
             for (int i = 0; i < groupSize; i++) {
-                populationClasses.get(i).produceBigGeneration();
+                populationClasses.get(i).produceGeneration(BIG_GENERATION);
             }
             for (int i = groupSize, limit = 2 * groupSize; i < limit; i++) {
-                populationClasses.get(i).produceMediumGeneration();
+                populationClasses.get(i).produceGeneration(MEDIUM_GENERATION);
             }
             for (int i = 2 * groupSize; i < populationClasses.size(); i++) {
-                populationClasses.get(i).produceSmallGeneration();
+                populationClasses.get(i).produceGeneration(SMALL_GENERATION);
+            }
+        }
+
+        private static final class GenerationSettings {
+
+            final int size;
+
+            final int selectionsCount;
+
+            final int weakMutationsCount;
+
+            GenerationSettings(int size, int selectionsCount, int weakMutationsCount) {
+                this.size = size;
+                this.selectionsCount = selectionsCount;
+                this.weakMutationsCount = weakMutationsCount;
             }
         }
     }
 
     private static final class PopulationClass implements Comparable<PopulationClass> {
-        private static final int BIG_GENERATION_SIZE = 20;
-        private static final int MEDIUM_GENERATION_SIZE = 10;
-        private static final int SMALL_GENERATION_SIZE = 5;
 
-        private static final double[] DELTAS = new double[]{0, 0.01, 0.05, 0.1};
-        private static final double[] FACTORS = new double[]{0.25, 0.5, 1, 2, 4};
+        static final double[] DELTAS = new double[]{0, 0.01, 0.05, 0.1};
 
-        private final Random random;
+        static final double[] FACTORS = new double[]{0.25, 0.5, 1, 2, 4};
 
-        private final InnerArimaForecaster innerForecaster;
+        final Random random;
 
-        private final List<Individual> individuals = new ArrayList<Individual>();
+        final InnerArimaForecaster innerForecaster;
 
-        private double estimate;
+        final List<Individual> individuals = new ArrayList<Individual>();
 
-        public PopulationClass(Individual individual, Random random, InnerArimaForecaster innerForecaster) {
+        double estimate;
+
+        PopulationClass(Individual individual, Population.GenerationSettings generation, Random random,
+                        InnerArimaForecaster innerForecaster) {
             this.random = random;
             this.innerForecaster = innerForecaster;
             addIndividual(individual);
-            for (int i = 1; i < BIG_GENERATION_SIZE / 2; i++) {
+            for (int i = 1; i < generation.size / 2; i++) {
                 addIndividual(mutateWeakly(individual));
             }
-            for (int i = BIG_GENERATION_SIZE / 2; i < BIG_GENERATION_SIZE; i++) {
+            for (int i = generation.size / 2; i < generation.size; i++) {
                 addIndividual(mutateStrongly(individual));
             }
         }
 
-        public void addIndividual(Individual individual) {
+        void addIndividual(Individual individual) {
             individuals.add(individual);
         }
 
-        public Individual getBestIndividual() {
+        Individual getBestIndividual() {
             return individuals.get(0);
         }
 
-        public void estimate(double[] learningObservations, double[] controlObservations) {
+        void estimate(double[] learningObservations, double[] controlObservations) {
             for (Individual individual : individuals) {
                 individual.estimate(learningObservations, controlObservations);
             }
@@ -204,35 +225,30 @@ public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy 
             estimate = ForecastAccuracyRelativeMetric.combineSorted(estimations);
         }
 
-        @Override
-        public int compareTo(PopulationClass populationClass) {
+        @Override public int compareTo(PopulationClass populationClass) {
             return Double.compare(estimate, populationClass.estimate);
         }
 
-        public void produceBigGeneration() {
-            produceGeneration(BIG_GENERATION_SIZE, 10, 5);
-        }
-
-        public void produceGeneration(int generationSize, int selectionLimit, int weakMutationLimit) {
-            List<Individual> nextGeneration = new ArrayList<Individual>(generationSize);
-            performSelection(nextGeneration, selectionLimit);
-            performWeakMutation(nextGeneration, weakMutationLimit);
-            performStrongMutation(nextGeneration, generationSize);
+        void produceGeneration(Population.GenerationSettings generationSettings) {
+            List<Individual> nextGeneration = new ArrayList<Individual>(generationSettings.size);
+            performSelection(nextGeneration, generationSettings.selectionsCount);
+            performWeakMutation(nextGeneration, generationSettings.weakMutationsCount);
+            performStrongMutation(nextGeneration, generationSettings.size);
             individuals.clear();
             individuals.addAll(nextGeneration);
         }
 
-        private void performSelection(List<Individual> nextGeneration, int limit) {
+        void performSelection(List<Individual> nextGeneration, int limit) {
             int level = 0;
             int oldLimit = limit;
             int newLimit;
             do {
                 newLimit = oldLimit / 2;
-                int size = oldLimit - newLimit;
-                if (size >= individuals.size()) {
-                    size = individuals.size() - 1;
+                int count = oldLimit - newLimit;
+                if (count >= individuals.size() - level) {
+                    count = individuals.size() - level - 2;
                 }
-                for (int i = 0; i < size; i++) {
+                for (int i = 0; i < count; i++) {
                     nextGeneration.add(performSelection(individuals.get(level), individuals.get(level + i + 1)));
                 }
                 level++;
@@ -240,7 +256,7 @@ public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy 
             } while (newLimit > 0);
         }
 
-        private Individual performSelection(Individual individual1, Individual individual2) {
+        Individual performSelection(Individual individual1, Individual individual2) {
             ArimaProcess arimaProcess1 = individual1.getArimaProcess();
             ArimaProcess arimaProcess2 = individual2.getArimaProcess();
             DefaultArimaProcess arimaProcess = new DefaultArimaProcess();
@@ -254,32 +270,24 @@ public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy 
             return new Individual(innerForecaster, arimaProcess);
         }
 
-        private void performWeakMutation(List<Individual> nextGeneration, int limit) {
+        void performWeakMutation(List<Individual> nextGeneration, int limit) {
             int size = limit > individuals.size() ? individuals.size() : limit;
             for (int i = 0; i < size; i++) {
                 nextGeneration.add(mutateWeakly(individuals.get(i)));
             }
         }
 
-        private void performStrongMutation(List<Individual> nextGeneration, int limit) {
+        void performStrongMutation(List<Individual> nextGeneration, int limit) {
             for (int i = nextGeneration.size(); i < limit; i++) {
                 nextGeneration.add(mutateStrongly(getRandomIndividual()));
             }
         }
 
-        private Individual getRandomIndividual() {
+        Individual getRandomIndividual() {
             return individuals.get(random.nextInt(individuals.size()));
         }
 
-        public void produceMediumGeneration() {
-            produceGeneration(MEDIUM_GENERATION_SIZE, 4, 4);
-        }
-
-        public void produceSmallGeneration() {
-            produceGeneration(SMALL_GENERATION_SIZE, 1, 2);
-        }
-
-        public Individual mutateWeakly(Individual individual) {
+        Individual mutateWeakly(Individual individual) {
             ArimaProcess oldArimaProcess = individual.getArimaProcess();
             DefaultArimaProcess newArimaProcess = new DefaultArimaProcess();
             newArimaProcess.setIntegrationOrder(oldArimaProcess.getIntegrationOrder());
@@ -290,23 +298,48 @@ public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy 
             return new Individual(innerForecaster, newArimaProcess);
         }
 
-        private double[] mutateWeakly(double[] array) {
+        double[] mutateWeakly(double[] array) {
             double[] result = new double[array.length];
             for (int i = 0; i < array.length; i++) {
                 result[i] = mutateWeakly(array[i]);
             }
+            normalize(result);
             return result;
         }
 
-        private double mutateWeakly(double value) {
-            return value + getRandomDelta();
+        void normalize(double[] values) {
+            double sum = 0;
+            for (double value : values) {
+                sum += Math.abs(value);
+            }
+            if (sum < 1) {
+                return;
+            }
+            double ratio = 1 - (sum - 1) / sum;
+            for (int i = 0; i < values.length; i++) {
+                values[i] *= ratio;
+                if (Math.abs(values[i]) > 0.01) {
+                    values[i] = Math.signum(values[i]) * 0.01;
+                }
+            }
         }
 
-        private double getRandomDelta() {
-            return DELTAS[random.nextInt(DELTAS.length)];
+        double mutateWeakly(double value) {
+            double newValue = value + getRandomDelta();
+            if (Math.abs(newValue) < 0.001) {
+                newValue = Math.signum(newValue) * 0.001;
+            } else if (Math.abs(newValue) > 0.999) {
+                newValue = Math.signum(newValue) * 0.999;
+            }
+            return newValue;
         }
 
-        public Individual mutateStrongly(Individual individual) {
+        double getRandomDelta() {
+            double delta = DELTAS[random.nextInt(DELTAS.length)];
+            return random.nextBoolean() ? delta : -delta;
+        }
+
+        Individual mutateStrongly(Individual individual) {
             ArimaProcess oldArimaProcess = individual.getArimaProcess();
             DefaultArimaProcess newArimaProcess = new DefaultArimaProcess();
             newArimaProcess.setIntegrationOrder(oldArimaProcess.getIntegrationOrder());
@@ -317,38 +350,44 @@ public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy 
             return new Individual(innerForecaster, newArimaProcess);
         }
 
-        private double[] mutateStrongly(double[] array) {
+        double[] mutateStrongly(double[] array) {
             double[] result = new double[array.length];
             for (int i = 0; i < array.length; i++) {
                 result[i] = mutateStrongly(array[i]);
             }
+            normalize(result);
             return result;
         }
 
-        private double mutateStrongly(double value) {
+        double mutateStrongly(double value) {
             double newValue = value * getRandomFactor();
+            if (Math.abs(newValue) < 0.001) {
+                newValue = Math.signum(newValue) * 0.001;
+            } else if (Math.abs(newValue) > 0.999) {
+                newValue = Math.signum(newValue) * 0.999;
+            }
             return random.nextBoolean() ? newValue : -newValue;
         }
 
-        private double getRandomFactor() {
+        double getRandomFactor() {
             return FACTORS[random.nextInt(FACTORS.length)];
         }
     }
 
     private static final class Individual implements Comparable<Individual> {
 
-        private final InnerArimaForecaster innerForecaster;
+        final InnerArimaForecaster innerForecaster;
 
-        private final ArimaProcess arimaProcess;
+        final ArimaProcess arimaProcess;
 
-        private double estimation;
+        double estimation;
 
-        public Individual(InnerArimaForecaster innerForecaster, ArimaProcess arimaProcess) {
+        Individual(InnerArimaForecaster innerForecaster, ArimaProcess arimaProcess) {
             this.innerForecaster = innerForecaster;
             this.arimaProcess = arimaProcess;
         }
 
-        public static Individual getBestIndividual(Individual individual1, Individual individual2) {
+        static Individual getBestIndividual(Individual individual1, Individual individual2) {
             double difference = individual1.getDifference(individual2);
             if (difference > 0 || (difference == 0 && individual2.hasLessOrder(individual1))) {
                 return individual2;
@@ -356,11 +395,11 @@ public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy 
             return individual1;
         }
 
-        public double getDifference(Individual individual) {
+        double getDifference(Individual individual) {
             return estimation - individual.estimation;
         }
 
-        public boolean hasLessOrder(Individual individual) {
+        boolean hasLessOrder(Individual individual) {
             int difference = arimaProcess.getArOrder() - individual.arimaProcess.getArOrder();
             if (difference < 0) {
                 return true;
@@ -382,21 +421,20 @@ public class GeneticAlgorithmArimaFitterStrategy implements ArimaFitterStrategy 
             return false;
         }
 
-        public ArimaProcess getArimaProcess() {
+        ArimaProcess getArimaProcess() {
             return arimaProcess;
         }
 
-        public void estimate(double[] learningObservations, double[] controlObservations) {
+        void estimate(double[] learningObservations, double[] controlObservations) {
             double[] forecast = innerForecaster.forecast(arimaProcess, learningObservations, CONTROL_OBSERVATIONS_COUNT);
             estimation = ForecastAccuracyRelativeMetric.getValue(controlObservations, forecast);
         }
 
-        public double getEstimation() {
+        double getEstimation() {
             return estimation;
         }
 
-        @Override
-        public int compareTo(Individual individual) {
+        @Override public int compareTo(Individual individual) {
             return Double.compare(estimation, individual.estimation);
         }
     }

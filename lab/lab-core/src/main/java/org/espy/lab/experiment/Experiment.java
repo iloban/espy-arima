@@ -28,22 +28,26 @@ public final class Experiment<R extends TimeSeriesProcessorReport> {
 
     private final ExecutorService executorService;
 
+    private final boolean debugMode;
+
     public Experiment(String suiteFileName,
                       TimeSeriesProcessorReportAggregator<R> aggregator,
                       List<TimeSeriesProcessor<R>> processors) {
-        this(suiteFileName, aggregator, processors, false);
+        this(suiteFileName, aggregator, processors, false, false);
     }
 
     public Experiment(String suiteFileName,
                       TimeSeriesProcessorReportAggregator<R> aggregator,
                       List<TimeSeriesProcessor<R>> processors,
-                      boolean trackProgress) {
+                      boolean trackProgress,
+                      boolean debugMode) {
         this.suiteFile = new File(suiteFileName);
         this.aggregator = aggregator;
         this.processors = processors;
-        int threadCount = Runtime.getRuntime().availableProcessors();
+        int threadCount = debugMode ? 1 : Runtime.getRuntime().availableProcessors();
         this.progressTracker = trackProgress ? new PercentageAndTimeProgressTracker(threadCount) : new DummyProgressTracker();
         this.executorService = createDefaultThreadPool(threadCount);
+        this.debugMode = debugMode;
     }
 
     private static ExecutorService createDefaultThreadPool(int threadCount) {
@@ -64,7 +68,7 @@ public final class Experiment<R extends TimeSeriesProcessorReport> {
             processor.init();
         }
         TimeSeriesSuite suite = readTimeSeriesSuite(suiteFile);
-        progressTracker.reset(suite.size(), processors.size());
+        progressTracker.init(suite.size(), processors.size());
         ExperimentResult.Builder<R> builder = ExperimentResult.<R>builder()
                 .setTimeSeriesSuiteFileName(suiteFile.getAbsolutePath())
                 .setTimeSeriesProcessorReportAggregator(aggregator);
@@ -83,6 +87,9 @@ public final class Experiment<R extends TimeSeriesProcessorReport> {
                         progressTracker.finishSampleProcessing(trackId, processor);
                         builder.putTimeSeriesProcessorReport(processor, report);
                     } catch (Exception e) {
+                        if (debugMode) {
+                            throw new RuntimeException("Unexpected exception during sample processing", e);
+                        }
                         TimeSeriesProcessorReport report = new UnsupportedSampleProcessorReport(processor, sample, e);
                         builder.putTimeSeriesProcessorErrorReport(processor, report);
                     }
@@ -109,7 +116,7 @@ public final class Experiment<R extends TimeSeriesProcessorReport> {
 
     private interface ProgressTracker {
 
-        void reset(int totalSamplesCount, int processorsCount);
+        void init(int totalSamplesCount, int processorsCount);
 
         Long startSampleProcessing();
 
@@ -118,7 +125,7 @@ public final class Experiment<R extends TimeSeriesProcessorReport> {
 
     private static final class DummyProgressTracker implements ProgressTracker {
 
-        @Override public void reset(int totalSamplesCount, int processorsCount) {
+        @Override public void init(int totalSamplesCount, int processorsCount) {
         }
 
         @Override public Long startSampleProcessing() {
@@ -147,17 +154,20 @@ public final class Experiment<R extends TimeSeriesProcessorReport> {
 
         private Long previousRemainderInSeconds;
 
+        private Instant startTimestamp;
+
         PercentageAndTimeProgressTracker(int threadCount) {
             this.threadCount = threadCount;
         }
 
-        @Override public void reset(int totalSamplesCount, int processorsCount) {
+        @Override public void init(int totalSamplesCount, int processorsCount) {
             this.averageIterationDurations.clear();
             this.processedSamplesCounts.clear();
             this.totalSamplesCount = totalSamplesCount;
             this.processorsCount = processorsCount;
             this.currentProgress = -1;
             this.previousRemainderInSeconds = null;
+            this.startTimestamp = Instant.now();
         }
 
         @Override public synchronized Long startSampleProcessing() {
@@ -196,7 +206,12 @@ public final class Experiment<R extends TimeSeriesProcessorReport> {
             }
             currentProgress = newProgress;
             if (currentProgress == 100) {
-                System.out.println("100%");
+                System.out.print("100% | Total: ");
+                Duration totalDuration = Duration.between(startTimestamp, Instant.now());
+                if (totalDuration.toMinutes() > 0) {
+                    System.out.print(totalDuration.toMinutes() + " minutes ");
+                }
+                System.out.println(totalDuration.getSeconds() % 60 + " seconds");
                 return;
             }
             Duration remainder = calcRemainderTime();

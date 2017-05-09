@@ -37,7 +37,8 @@ public class ExperimentRunner {
                                 new FarmForecastComparator()
                         )
                 ),
-                true
+                true,
+                false
         );
 
         ExperimentResult result = experiment.run();

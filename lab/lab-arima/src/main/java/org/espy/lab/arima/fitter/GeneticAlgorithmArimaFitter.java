@@ -3,7 +3,7 @@ package org.espy.lab.arima.fitter;
 import org.espy.arima.ArimaFitterStrategy;
 import org.espy.arima.ArimaProcess;
 import org.espy.arima.GeneticAlgorithmArimaFitterStrategy;
-import org.espy.lab.arima.sample.metadata.ArimaTimeSeriesSampleMetadata;
+import org.espy.lab.sample.metadata.TimeSeriesSampleMetadata;
 
 import java.io.PrintWriter;
 import java.util.Random;
@@ -26,7 +26,11 @@ public final class GeneticAlgorithmArimaFitter implements ArimaFitter {
     }
 
 
-    @Override public ArimaProcess fit(ArimaTimeSeriesSampleMetadata metadata, double[] observations) {
+    @Override public boolean support(TimeSeriesSampleMetadata metadata) {
+        return true;
+    }
+
+    @Override public ArimaProcess fit(TimeSeriesSampleMetadata metadata, double[] observations) {
         ArimaFitterStrategy fitter = new GeneticAlgorithmArimaFitterStrategy(observations,
                 metadata.getUnobservedPartLength(), randomSupplier.get(), innerForecaster);
         return fitter.fit();

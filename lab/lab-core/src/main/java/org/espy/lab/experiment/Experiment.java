@@ -81,10 +81,9 @@ public final class Experiment<R extends TimeSeriesProcessorReport> {
                     continue;
                 }
                 futures.add(executorService.submit(() -> {
+                    Long trackId = progressTracker.startSampleProcessing();
                     try {
-                        Long trackId = progressTracker.startSampleProcessing();
                         R report = processor.process(sample);
-                        progressTracker.finishSampleProcessing(trackId, processor);
                         builder.putTimeSeriesProcessorReport(processor, report);
                     } catch (Exception e) {
                         if (debugMode) {
@@ -92,6 +91,8 @@ public final class Experiment<R extends TimeSeriesProcessorReport> {
                         }
                         TimeSeriesProcessorReport report = new UnsupportedSampleProcessorReport(processor, sample, e);
                         builder.putTimeSeriesProcessorErrorReport(processor, report);
+                    } finally {
+                        progressTracker.finishSampleProcessing(trackId, processor);
                     }
                 }));
             }

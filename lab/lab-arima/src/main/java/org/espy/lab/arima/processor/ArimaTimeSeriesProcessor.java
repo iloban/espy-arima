@@ -8,6 +8,7 @@ import org.espy.lab.processor.TimeSeriesProcessor;
 import org.espy.lab.report.TimeSeriesProcessorReport;
 import org.espy.lab.report.TimeSeriesProcessorReportProducer;
 import org.espy.lab.sample.TimeSeriesSample;
+import org.espy.lab.sample.metadata.TimeSeriesSampleMetadata;
 
 import java.io.PrintWriter;
 
@@ -27,16 +28,16 @@ public final class ArimaTimeSeriesProcessor<R extends TimeSeriesProcessorReport>
         this.reportProducer = reportProducer;
     }
 
-    @Override public boolean support(TimeSeriesSample sample) {
-        return sample.getMetadata() instanceof ArimaTimeSeriesSampleMetadata;
-    }
-
     @Override public void init() {
         ArimaTimeSeriesSampleMetadata.register();
     }
 
+    @Override public boolean support(TimeSeriesSample sample) {
+        return fitter.support(sample.getMetadata());
+    }
+
     @Override public R process(TimeSeriesSample sample) {
-        ArimaTimeSeriesSampleMetadata metadata = (ArimaTimeSeriesSampleMetadata) sample.getMetadata();
+        TimeSeriesSampleMetadata metadata = sample.getMetadata();
         double[] observedPart = sample.getObservedPart();
         double[] unobservedPart = sample.getUnobservedPart();
         ArimaProcess arimaProcess = fitter.fit(metadata, observedPart);

@@ -3,7 +3,7 @@ package org.espy.lab.experiment;
 import org.espy.lab.processor.TimeSeriesProcessor;
 import org.espy.lab.report.TimeSeriesProcessorReport;
 import org.espy.lab.report.TimeSeriesProcessorReportAggregator;
-import org.espy.lab.report.util.UnsupportedSampleProcessorReport;
+import org.espy.lab.report.util.UnsupportedSampleReport;
 import org.espy.lab.sample.TimeSeriesSample;
 import org.espy.lab.suite.TimeSeriesSuite;
 
@@ -76,7 +76,7 @@ public final class Experiment<R extends TimeSeriesProcessorReport> {
         for (TimeSeriesSample sample : suite) {
             for (TimeSeriesProcessor<R> processor : processors) {
                 if (!processor.support(sample)) {
-                    TimeSeriesProcessorReport report = new UnsupportedSampleProcessorReport(processor, sample);
+                    TimeSeriesProcessorReport report = new UnsupportedSampleReport(processor.getName(), sample);
                     builder.putTimeSeriesProcessorErrorReport(processor, report);
                     continue;
                 }
@@ -89,7 +89,7 @@ public final class Experiment<R extends TimeSeriesProcessorReport> {
                         if (debugMode) {
                             throw new RuntimeException("Unexpected exception during sample processing", e);
                         }
-                        TimeSeriesProcessorReport report = new UnsupportedSampleProcessorReport(processor, sample, e);
+                        TimeSeriesProcessorReport report = new UnsupportedSampleReport(processor.getName(), sample, e);
                         builder.putTimeSeriesProcessorErrorReport(processor, report);
                     } finally {
                         progressTracker.finishSampleProcessing(trackId, processor);
@@ -101,7 +101,9 @@ public final class Experiment<R extends TimeSeriesProcessorReport> {
             try {
                 future.get();
             } catch (Exception e) {
-                throw new RuntimeException("Can't process sample", e);
+                if (debugMode) {
+                    throw new RuntimeException("Can't process sample", e);
+                }
             }
         }
         return builder.build();

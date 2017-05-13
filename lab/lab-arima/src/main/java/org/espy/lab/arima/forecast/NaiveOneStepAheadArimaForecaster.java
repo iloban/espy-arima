@@ -6,7 +6,7 @@ import org.espy.arima.DefaultArimaForecaster;
 import java.io.PrintWriter;
 import java.util.Arrays;
 
-public final class EspyNaiveOneStepAheadArimaForecaster implements ArimaForecaster {
+public final class NaiveOneStepAheadArimaForecaster implements ArimaForecaster {
 
     public double[] forecast(ArimaProcess arimaProcess, double[] observedPart, int forecastLength) {
         double[] forecast = new double[forecastLength];

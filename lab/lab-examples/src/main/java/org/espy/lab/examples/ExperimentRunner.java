@@ -2,7 +2,7 @@ package org.espy.lab.examples;
 
 import org.espy.lab.arima.fitter.GeneticAlgorithmArimaFitter;
 import org.espy.lab.arima.fitter.IdentityArimaFitter;
-import org.espy.lab.arima.forecast.EspyNaiveMultiStepAheadArimaForecaster;
+import org.espy.lab.arima.forecast.NaiveMultiStepAheadArimaForecaster;
 import org.espy.lab.arima.processor.ArimaTimeSeriesProcessor;
 import org.espy.lab.experiment.Experiment;
 import org.espy.lab.experiment.ExperimentResult;
@@ -28,12 +28,12 @@ public class ExperimentRunner {
                 Arrays.asList(
                         new ArimaTimeSeriesProcessor<>(
                                 new IdentityArimaFitter(),
-                                new EspyNaiveMultiStepAheadArimaForecaster(),
+                                new NaiveMultiStepAheadArimaForecaster(),
                                 new FarmForecastComparator()
                         ),
                         new ArimaTimeSeriesProcessor<>(
                                 new GeneticAlgorithmArimaFitter(() -> new Random(seed)),
-                                new EspyNaiveMultiStepAheadArimaForecaster(),
+                                new NaiveMultiStepAheadArimaForecaster(),
                                 new FarmForecastComparator()
                         )
                 ),
